@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consolidador General de Fuerzas - CENOP</title>
+    <style>
+        :root {
+            --bg-principal: #0b1329;
+            --bg-tarjeta: #1c2541;
+            --verde-tactico: #00b4d8;
+            --texto-claro: #f8fafc;
+            --borde: #3a506b;
+            --exito: #06d6a0;
+            --gris-txt: #94a3b8;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-principal);
+            color: var(--texto-claro);
+            margin: 0;
+            padding: 15px;
+        }
+        .contenedor {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .titulo-app {
+            text-align: center;
+            color: var(--texto-claro);
+            border-bottom: 2px solid var(--verde-tactico);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+        .seccion {
+            background-color: var(--bg-tarjeta);
+            border: 1px solid var(--borde);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        h3 {
+            color: var(--verde-tactico);
+            margin-top: 0;
+            text-transform: uppercase;
+            border-left: 4px solid var(--verde-tactico);
+            padding-left: 10px;
+            font-size: 15px;
+        }
+        p {
+            font-size: 13px;
+            color: var(--gris-txt);
+            margin-top: -5px;
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: 100%;
+            background-color: var(--bg-principal);
+            border: 1px solid var(--borde);
+            color: var(--texto-claro);
+            border-radius: 5px;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        textarea:focus {
+            border-color: var(--verde-tactico);
+            outline: none;
+        }
+        .grid-entradas {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 768px) {
+            .grid-entradas { grid-template-columns: 1fr 1fr 1fr; }
+        }
+        button {
+            background-color: var(--exito);
+            color: var(--bg-principal);
+            border: none;
+            padding: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            transition: 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        .resultado-reporte {
+            background-color: #020617;
+            border-left: 4px solid var(--verde-tactico);
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            padding: 15px;
+            border-radius: 5px;
+            color: #adfa1d;
+            margin-top: 15px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="contenedor">
+    <div class="titulo-app">
+        <strong>Consolidador General de Partes e Instructores</strong>
+    </div>
+
+    <div class="seccion">
+        <h3>Pegar Reportes de WhatsApp</h3>
+        <p>Pegue el texto tal cual como llega de WhatsApp de cada grupo en su respectiva casilla.</p>
+        
+        <div class="grid-entradas">
+            <div>
+                <label style="font-size:12px; font-weight:bold; color:var(--verde-tactico)">1. GRANADEROS</label>
+                <textarea id="txt-granaderos" rows="12" placeholder="Pegue el parte de Granaderos aquí..."></textarea>
+            </div>
+            <div>
+                <label style="font-size:12px; font-weight:bold; color:var(--verde-tactico)">2. GRUPO COR</label>
+                <textarea id="txt-cor" rows="12" placeholder="Pegue el parte de COR aquí..."></textarea>
+            </div>
+            <div>
+                <label style="font-size:12px; font-weight:bold; color:var(--verde-tactico)">3. TIRO POLICIAL</label>
+                <textarea id="txt-tiro" rows="12" placeholder="Pegue el parte de Tiro aquí..."></textarea>
+            </div>
+        </div>
+
+        <button onclick="procesarYConsolidar()">Generar Consolidado General</button>
+    </div>
+
+    <div id="seccion-resultado" class="seccion" style="display: none;">
+        <h3>Consolidado Listo para Enviar</h3>
+        <button onclick="copiarConsolidado()" style="background-color: var(--verde-tactico); color: white; margin-bottom: 15px; padding: 10px;">
+            Copiar Consolidado para WhatsApp
+        </button>
+        <div class="resultado-reporte" id="texto-consolidado-final"></div>
+    </div>
+</div>
+
+<script>
+    const NOVEDADES_LISTA = [
+        "FORMACIÓN", "LABORANDO", "SERVICIOS", "FRANQUICIA", "EXCUSA TOTAL", 
+        "PERMISOS ESPECIALES", "VACACIONES", "HOSPITALIZADO", 
+        "INCAPACIDAD PARCIAL", "COMISIÓN SERVICIO", "COMISIÓN ESTUDIO"
+    ];
+
+    const GRADOS_VALIDOS = ["MY", "CT", "TE", "ST", "CM", "SC", "IJ", "IT", "SI", "PT", "PP"];
+
+    function procesarYConsolidar() {
+        let totalEfe = [0,0,0,0];
+        let totalDis = [0,0,0,0];
+
+        let estructuraConteos = {};
+        let estructuraNombres = {};
+
+        NOVEDADES_LISTA.forEach(nov => {
+            estructuraConteos[nov] = [0,0,0,0];
+            estructuraNombres[nov] = [];
+        });
+
+        const fuentes = [
+            { id: 'txt-granaderos', nombre: 'GRANADEROS' },
+            { id: 'txt-cor', nombre: 'COR' },
+            { id: 'txt-tiro', nombre: 'TIRO' }
+        ];
+
+        let bloquesProcesados = 0;
+
+        fuentes.forEach(fuente => {
+            const textoRaw = document.getElementById(fuente.id).value;
+            if (!textoRaw.trim()) return;
+            bloquesProcesados++;
+
+            const lineas = textoRaw.split('\n');
+            let novedadActual = "";
+
+            for (let i = 0; i < lineas.length; i++) {
+                let lOriginal = lineas[i].trim();
+                let lLimpia = lOriginal.replace(/[\*\s·•\-\.:_]+/g, ' ').trim().toUpperCase();
+
+                if (!lLimpia) continue;
+
+                // DETECCIÓN EXCLUSIVA Y FILTRADA PARA CABECERAS (Evita duplicados del resumen de abajo o actividades)
+                if (lLimpia.startsWith("FUERZA EFE") || lLimpia.startsWith("FUERZA DIS")) {
+                    // Solo procesamos las que están en la parte superior del mensaje
+                    if (i < lineas.length * 0.4) {
+                        const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
+                        if (vectorMatch) {
+                            let v0 = parseInt(vectorMatch[1]);
+                            let v1 = parseInt(vectorMatch[2]);
+                            let v2 = parseInt(vectorMatch[3]);
+                            let v3 = parseInt(vectorMatch[4]);
+
+                            if (lLimpia.includes("EFE")) {
+                                totalEfe[0] += v0; totalEfe[1] += v1; totalEfe[2] += v2; totalEfe[3] += v3;
+                            } else if (lLimpia.includes("DIS")) {
+                                totalDis[0] += v0; totalDis[1] += v1; totalDis[2] += v2; totalDis[3] += v3;
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                // Ignorar líneas del bloque de Resumen Acumulado o Actividades para que no alteren los vectores
+                if (lLimpia.includes("RESUMEN DE DISPONIBILIDAD") || lLimpia.startsWith("ACTIVIDADES PARA") || lLimpia.startsWith("ACTIVIDAD PARA")) {
+                    novedadActual = ""; // Reseteamos la novedad para no meter datos basura
+                    continue;
+                }
+
+                // Identificar secciones operativas legítimas
+                let detectoCambio = false;
+                if (lLimpia.includes("FORMACION") || lLimpia.includes("FORMACIÓN")) { novedadActual = "FORMACIÓN"; detectoCambio = true; }
+                else if (lLimpia.includes("LABORANDO")) { novedadActual = "LABORANDO"; detectoCambio = true; }
+                else if (lLimpia.includes("SERVICIOS")) { novedadActual = "SERVICIOS"; detectoCambio = true; }
+                else if (lLimpia.includes("FRANQUICIA")) { novedadActual = "FRANQUICIA"; detectoCambio = true; }
+                else if (lLimpia.includes("EXCUSA TOTAL")) { novedadActual = "EXCUSA TOTAL"; detectoCambio = true; }
+                else if (lLimpia.includes("PERMISOS ESPECIALES") || lLimpia.includes("PERMISOS ESP")) { novedadActual = "PERMISOS ESPECIALES"; detectoCambio = true; }
+                else if (lLimpia.includes("VACACIONES")) { novedadActual = "VACACIONES"; detectoCambio = true; }
+                else if (lLimpia.includes("HOSPITALIZADO")) { novedadActual = "HOSPITALIZADO"; detectoCambio = true; }
+                else if (lLimpia.includes("INCAPACIDAD PARCIAL") || lLimpia.includes("INCAPACIDAD")) { novedadActual = "INCAPACIDAD PARCIAL"; detectoCambio = true; }
+                else if (lLimpia.includes("COMISION DEL SERVICIO") || lLimpia.includes("COMISIÓN SERVICIO") || lLimpia.includes("COMISION SER")) { novedadActual = "COMISIÓN SERVICIO"; detectoCambio = true; }
+                else if (lLimpia.includes("COMISION DE ESTUDIO") || lLimpia.includes("COMISIÓN ESTUDIO")) { novedadActual = "COMISIÓN ESTUDIO"; detectoCambio = true; }
+
+                if (detectoCambio) continue;
+
+                if (novedadActual) {
+                    // Extraer vector numérico de la novedad activa (ej: 0-3-2-0)
+                    const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
+                    if (vectorMatch) {
+                        estructuraConteos[novedadActual][0] += parseInt(vectorMatch[1]);
+                        estructuraConteos[novedadActual][1] += parseInt(vectorMatch[2]);
+                        estructuraConteos[novedadActual][2] += parseInt(vectorMatch[3]);
+                        estructuraConteos[novedadActual][3] += parseInt(vectorMatch[4]);
+                        continue;
+                    }
+
+                    // Ignorar líneas informativas o de plantilla vacía
+                    if (lLimpia === "NINGUNO" || lLimpia.includes("GRADO APELLIDO") || lLimpia.includes("GRADO UNIDAD") || lLimpia.startsWith("FORMAN") || lLimpia.includes("PERSONAL EN BASE")) {
+                        continue;
+                    }
+
+                    // Capturar nombres reales con grado policial válido
+                    const tokens = lLimpia.split(/\s+/);
+                    if (tokens.length > 0) {
+                        let posibleGrado = tokens[0].replace(/\./g, '');
+                        if (GRADOS_VALIDOS.includes(posibleGrado)) {
+                            let nombrePresentacion = lOriginal.replace(/^[\s\*·•\-\.:_]+/g, '').replace(/\*/g, '');
+                            estructuraNombres[novedadActual].push(`  ${nombrePresentacion} - ${fuente.nombre}`);
+                        }
+                    }
+                }
+            }
+        });
+
+        if (bloquesProcesados === 0) {
+            alert("Por favor, pegue al menos un reporte de WhatsApp.");
+            return;
+        }
+
+        // Calcular dinámicamente las novedades administrativas y médicas acumuladas
+        let totalNov = [0,0,0,0];
+        NOVEDADES_LISTA.forEach(nov => {
+            if (nov !== "FORMACIÓN" && nov !== "LABORANDO" && nov !== "SERVICIOS") {
+                for (let i = 0; i < 4; i++) totalNov[i] += estructuraConteos[nov][i];
+            }
+        });
+
+        const fmt = (v) => `${v[0]}-${v[1]}-${v[2]}-${v[3]}= ${v.reduce((x,y)=>x+y,0)}`;
+
+        let f = new Date();
+        let fechaStr = f.getDate() + "/" + (f.getMonth() + 1) + "/" + f.getFullYear();
+
+        let output = `*CONSOLIDADO GENERAL GRUPO DE INSTRUCTORES CENOP*\n`;
+        output += `Fecha de Consolidación: ${fechaStr}\n\n`;
+        output += `Fuerza Efe: ${fmt(totalEfe)}\n`;
+        output += `Fuerza Dis: ${fmt(totalDis)}\n`;
+        output += `Novedades: ${fmt(totalNov)}\n`;
+        output += `.............................................\n\n`;
+
+        NOVEDADES_LISTA.forEach(nov => {
+            output += `*${nov}*\n`;
+            output += `${fmt(estructuraConteos[nov])}\n`;
+            
+            if (estructuraNombres[nov].length > 0) {
+                let nombresUnicos = [...new Set(estructuraNombres[nov])];
+                nombresUnicos.forEach(nom => {
+                    output += `${nom}\n`;
+                });
+            } else {
+                output += `  Ninguno\n`;
+            }
+            output += `\n`;
+        });
+
+        output += `.............................................\n`;
+        output += `*RESUMEN DE DISPONIBILIDAD TOTAL*\n`;
+        output += `Fuerza Efe: ${fmt(totalEfe)}\n`;
+        output += `Fuerza Dis: ${fmt(totalDis)}\n`;
+        output += `Novedades:  ${fmt(totalNov)}\n`;
+        
+        NOVEDADES_LISTA.forEach(nov => {
+            let tituloMin = nov.charAt(0) + nov.slice(1).toLowerCase();
+            if (nov === "PERMISOS ESPECIALES") tituloMin = "Permisos Esp";
+            if (nov === "INCAPACIDAD PARCIAL") tituloMin = "Incapacidad";
+            if (nov === "COMISIÓN SERVICIO") tituloMin = "Comisión Ser";
+            if (nov === "COMISIÓN ESTUDIO") tituloMin = "Comisión Estudio";
+            
+            let espacio = tituloMin.length < 15 ? " ".repeat(16 - tituloMin.length) : " ";
+            output += `${tituloMin}:${espacio}${fmt(estructuraConteos[nov])}\n`;
+        });
+
+        document.getElementById('texto-consolidado-final').innerText = output;
+        document.getElementById('seccion-resultado').style.display = 'block';
+        document.getElementById('seccion-resultado').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copiarConsolidado() {
+        const elTexto = document.getElementById('texto-consolidado-final').innerText;
+        navigator.clipboard.writeText(elTexto).then(() => {
+            alert("¡Consolidado general copiado con éxito!");
+        }).catch(() => {
+            alert("Error al copiar automáticamente.");
+        });
+    }
+</script>
+
+</body>
+</html>
