@@ -163,11 +163,11 @@
         let totalDis = [0,0,0,0];
 
         let estructuraConteos = {};
-        let estructuraNombres = {};
+        let estructuraNombresRaw = {}; // Almacenamiento temporal intermedio
 
         NOVEDADES_LISTA.forEach(nov => {
             estructuraConteos[nov] = [0,0,0,0];
-            estructuraNombres[nov] = [];
+            estructuraNombresRaw[nov] = [];
         });
 
         const fuentes = [
@@ -188,13 +188,13 @@
 
             for (let i = 0; i < lineas.length; i++) {
                 let lOriginal = lineas[i].trim();
-                let lLimpia = lOriginal.replace(/[\*\s·•\-\.:_]+/g, ' ').trim().toUpperCase();
+                let lLimpia = lOriginal.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                lLimpia = lLimpia.replace(/[\*\s·•\-\.:_]+/g, ' ').trim().toUpperCase();
 
                 if (!lLimpia) continue;
 
-                // DETECCIÓN EXCLUSIVA Y FILTRADA PARA CABECERAS (Evita duplicados del resumen de abajo o actividades)
+                // CAPTURA DE VECTORES SUPERIORES
                 if (lLimpia.startsWith("FUERZA EFE") || lLimpia.startsWith("FUERZA DIS")) {
-                    // Solo procesamos las que están en la parte superior del mensaje
                     if (i < lineas.length * 0.4) {
                         const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
                         if (vectorMatch) {
@@ -213,15 +213,15 @@
                     continue;
                 }
 
-                // Ignorar líneas del bloque de Resumen Acumulado o Actividades para que no alteren los vectores
-                if (lLimpia.includes("RESUMEN DE DISPONIBILIDAD") || lLimpia.startsWith("ACTIVIDADES PARA") || lLimpia.startsWith("ACTIVIDAD PARA")) {
-                    novedadActual = ""; // Reseteamos la novedad para no meter datos basura
+                // FIN DEL REPORTE
+                if (lLimpia.includes("RESUMEN DE DISPONIBILIDAD")) {
+                    novedadActual = "";
                     continue;
                 }
 
-                // Identificar secciones operativas legítimas
+                // Identificación de secciones
                 let detectoCambio = false;
-                if (lLimpia.includes("FORMACION") || lLimpia.includes("FORMACIÓN")) { novedadActual = "FORMACIÓN"; detectoCambio = true; }
+                if (lLimpia.includes("FORMACION")) { novedadActual = "FORMACIÓN"; detectoCambio = true; }
                 else if (lLimpia.includes("LABORANDO")) { novedadActual = "LABORANDO"; detectoCambio = true; }
                 else if (lLimpia.includes("SERVICIOS")) { novedadActual = "SERVICIOS"; detectoCambio = true; }
                 else if (lLimpia.includes("FRANQUICIA")) { novedadActual = "FRANQUICIA"; detectoCambio = true; }
@@ -236,28 +236,37 @@
                 if (detectoCambio) continue;
 
                 if (novedadActual) {
-                    // Extraer vector numérico de la novedad activa (ej: 0-3-2-0)
                     const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
                     if (vectorMatch) {
-                        estructuraConteos[novedadActual][0] += parseInt(vectorMatch[1]);
-                        estructuraConteos[novedadActual][1] += parseInt(vectorMatch[2]);
-                        estructuraConteos[novedadActual][2] += parseInt(vectorMatch[3]);
-                        estructuraConteos[novedadActual][3] += parseInt(vectorMatch[4]);
+                        if (i < lineas.length * 0.75) {
+                            estructuraConteos[novedadActual][0] += parseInt(vectorMatch[1]);
+                            estructuraConteos[novedadActual][1] += parseInt(vectorMatch[2]);
+                            estructuraConteos[novedadActual][2] += parseInt(vectorMatch[3]);
+                            estructuraConteos[novedadActual][3] += parseInt(vectorMatch[4]);
+                        }
                         continue;
                     }
 
-                    // Ignorar líneas informativas o de plantilla vacía
                     if (lLimpia === "NINGUNO" || lLimpia.includes("GRADO APELLIDO") || lLimpia.includes("GRADO UNIDAD") || lLimpia.startsWith("FORMAN") || lLimpia.includes("PERSONAL EN BASE")) {
                         continue;
                     }
 
-                    // Capturar nombres reales con grado policial válido
+                    // Extracción base de tokens de la línea
                     const tokens = lLimpia.split(/\s+/);
                     if (tokens.length > 0) {
                         let posibleGrado = tokens[0].replace(/\./g, '');
                         if (GRADOS_VALIDOS.includes(posibleGrado)) {
-                            let nombrePresentacion = lOriginal.replace(/^[\s\*·•\-\.:_]+/g, '').replace(/\*/g, '');
-                            estructuraNombres[novedadActual].push(`  ${nombrePresentacion} - ${fuente.nombre}`);
+                            let nombrePresentacion = lOriginal.replace(/^[\s\*·•\-\.:_]+/g, '').replace(/\*/g, '').trim();
+                            
+                            // Guardamos todo de forma preliminar junto a sus propiedades analíticas
+                            estructuraNombresRaw[novedadActual].push({
+                                grado: posibleGrado,
+                                primerApellido: tokens[1] ? tokens[1] : "",
+                                textoLimpio: lLimpia,
+                                original: nombrePresentacion,
+                                fuenteNombre: fuente.nombre,
+                                largo: lLimpia.length
+                            });
                         }
                     }
                 }
@@ -269,7 +278,40 @@
             return;
         }
 
-        // Calcular dinámicamente las novedades administrativas y médicas acumuladas
+        // PROCESAMIENTO INTELIGENTE DE DOS PASOS POR CADA NOVEDAD
+        let estructuraNombresFinal = {};
+        NOVEDADES_LISTA.forEach(nov => {
+            estructuraNombresFinal[nov] = [];
+            let candidatos = estructuraNombresRaw[nov];
+
+            // Pasada 1: Identificar y priorizar las líneas de nombres completos oficiales (las más largas)
+            // Primero eliminamos de raíz las líneas informativas que contienen "ACTIVIDADES" o "ACTIVIDAD"
+            candidatos = candidatos.filter(c => !c.textoLimpio.includes("ACTIVIDADES") && !c.textoLimpio.includes("ACTIVIDAD"));
+
+            // Ordenamos de mayor a menor longitud para procesar siempre el nombre completo primero
+            candidatos.sort((a, b) => b.largo - a.largo);
+
+            let huellasRegistradas = new Set();
+
+            candidatos.forEach(c => {
+                let huella = `${c.grado}-${c.primerApellido}`;
+                
+                // Si la línea tiene un rol evidente ("PRINCIPAL", "AUXILIAR", etc.), sólo la dejamos pasar si no hay nada más largo ya registrado
+                let esLineaDeRol = c.textoLimpio.includes("PRINCIPAL") || c.textoLimpio.includes("AUXILIAR") || 
+                                   c.textoLimpio.includes("CONDUCTOR") || c.textoLimpio.includes("CONDUC") || 
+                                   c.textoLimpio.includes("ENFERMERO") || c.textoLimpio.includes("RELEVO");
+
+                if (!huellasRegistradas.has(huella)) {
+                    // Si es una línea corta de rol, no la añadimos al reporte final, pero sí registramos la huella 
+                    // para asegurar que cuando el motor analice la línea oficial más larga la reconozca (o viceversa)
+                    if (!esLineaDeRol) {
+                        estructuraNombresFinal[nov].push(`  ${c.original} - ${c.fuenteNombre}`);
+                    }
+                    huellasRegistradas.add(huella);
+                }
+            });
+        });
+
         let totalNov = [0,0,0,0];
         NOVEDADES_LISTA.forEach(nov => {
             if (nov !== "FORMACIÓN" && nov !== "LABORANDO" && nov !== "SERVICIOS") {
@@ -293,9 +335,10 @@
             output += `*${nov}*\n`;
             output += `${fmt(estructuraConteos[nov])}\n`;
             
-            if (estructuraNombres[nov].length > 0) {
-                let nombresUnicos = [...new Set(estructuraNombres[nov])];
-                nombresUnicos.forEach(nom => {
+            if (estructuraNombresFinal[nov].length > 0) {
+                // Invertimos el orden para mantener la consistencia alfabética o de ingreso original
+                let listadoImpresion = [...new Set(estructuraNombresFinal[nov])].sort();
+                listadoImpresion.forEach(nom => {
                     output += `${nom}\n`;
                 });
             } else {
