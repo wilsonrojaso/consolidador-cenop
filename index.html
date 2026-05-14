@@ -163,7 +163,7 @@
         let totalDis = [0,0,0,0];
 
         let estructuraConteos = {};
-        let estructuraNombresRaw = {}; // Almacenamiento temporal intermedio
+        let estructuraNombresRaw = {};
 
         NOVEDADES_LISTA.forEach(nov => {
             estructuraConteos[nov] = [0,0,0,0];
@@ -188,6 +188,9 @@
 
             for (let i = 0; i < lineas.length; i++) {
                 let lOriginal = lineas[i].trim();
+                if (!lOriginal) continue;
+
+                // Normalización sin tildes para evitar fallas de digitación
                 let lLimpia = lOriginal.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 lLimpia = lLimpia.replace(/[\*\s·•\-\.:_]+/g, ' ').trim().toUpperCase();
 
@@ -214,12 +217,12 @@
                 }
 
                 // FIN DEL REPORTE
-                if (lLimpia.includes("RESUMEN DE DISPONIBILIDAD")) {
+                if (lLimpia.includes("RESUMEN DE DISPONIBILIDAD") || lLimpia.includes("RESUMEN DISPONIBILIDAD")) {
                     novedadActual = "";
                     continue;
                 }
 
-                // Identificación de secciones
+                // Identificación robusta de secciones
                 let detectoCambio = false;
                 if (lLimpia.includes("FORMACION")) { novedadActual = "FORMACIÓN"; detectoCambio = true; }
                 else if (lLimpia.includes("LABORANDO")) { novedadActual = "LABORANDO"; detectoCambio = true; }
@@ -230,15 +233,16 @@
                 else if (lLimpia.includes("VACACIONES")) { novedadActual = "VACACIONES"; detectoCambio = true; }
                 else if (lLimpia.includes("HOSPITALIZADO")) { novedadActual = "HOSPITALIZADO"; detectoCambio = true; }
                 else if (lLimpia.includes("INCAPACIDAD PARCIAL") || lLimpia.includes("INCAPACIDAD")) { novedadActual = "INCAPACIDAD PARCIAL"; detectoCambio = true; }
-                else if (lLimpia.includes("COMISION DEL SERVICIO") || lLimpia.includes("COMISIÓN SERVICIO") || lLimpia.includes("COMISION SER")) { novedadActual = "COMISIÓN SERVICIO"; detectoCambio = true; }
-                else if (lLimpia.includes("COMISION DE ESTUDIO") || lLimpia.includes("COMISIÓN ESTUDIO")) { novedadActual = "COMISIÓN ESTUDIO"; detectoCambio = true; }
+                // Corrección Crítica: Filtrar ESTUDIO de manera prioritaria antes que Servicio general
+                else if (lLimpia.includes("ESTUDIO")) { novedadActual = "COMISIÓN ESTUDIO"; detectoCambio = true; }
+                else if (lLimpia.includes("COMISION DEL SERVICIO") || lLimpia.includes("COMISION SERVICIO") || lLimpia.includes("COMISION SER") || lLimpia.includes("COMISION DE SERVICIO")) { novedadActual = "COMISIÓN SERVICIO"; detectoCambio = true; }
 
                 if (detectoCambio) continue;
 
                 if (novedadActual) {
                     const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
                     if (vectorMatch) {
-                        if (i < lineas.length * 0.75) {
+                        if (i < lineas.length * 0.85) { // Ampliado el rango de búsqueda interna de vectores
                             estructuraConteos[novedadActual][0] += parseInt(vectorMatch[1]);
                             estructuraConteos[novedadActual][1] += parseInt(vectorMatch[2]);
                             estructuraConteos[novedadActual][2] += parseInt(vectorMatch[3]);
@@ -251,14 +255,12 @@
                         continue;
                     }
 
-                    // Extracción base de tokens de la línea
                     const tokens = lLimpia.split(/\s+/);
                     if (tokens.length > 0) {
                         let posibleGrado = tokens[0].replace(/\./g, '');
                         if (GRADOS_VALIDOS.includes(posibleGrado)) {
                             let nombrePresentacion = lOriginal.replace(/^[\s\*·•\-\.:_]+/g, '').replace(/\*/g, '').trim();
                             
-                            // Guardamos todo de forma preliminar junto a sus propiedades analíticas
                             estructuraNombresRaw[novedadActual].push({
                                 grado: posibleGrado,
                                 primerApellido: tokens[1] ? tokens[1] : "",
@@ -278,17 +280,12 @@
             return;
         }
 
-        // PROCESAMIENTO INTELIGENTE DE DOS PASOS POR CADA NOVEDAD
         let estructuraNombresFinal = {};
         NOVEDADES_LISTA.forEach(nov => {
             estructuraNombresFinal[nov] = [];
             let candidatos = estructuraNombresRaw[nov];
 
-            // Pasada 1: Identificar y priorizar las líneas de nombres completos oficiales (las más largas)
-            // Primero eliminamos de raíz las líneas informativas que contienen "ACTIVIDADES" o "ACTIVIDAD"
             candidatos = candidatos.filter(c => !c.textoLimpio.includes("ACTIVIDADES") && !c.textoLimpio.includes("ACTIVIDAD"));
-
-            // Ordenamos de mayor a menor longitud para procesar siempre el nombre completo primero
             candidatos.sort((a, b) => b.largo - a.largo);
 
             let huellasRegistradas = new Set();
@@ -296,14 +293,11 @@
             candidatos.forEach(c => {
                 let huella = `${c.grado}-${c.primerApellido}`;
                 
-                // Si la línea tiene un rol evidente ("PRINCIPAL", "AUXILIAR", etc.), sólo la dejamos pasar si no hay nada más largo ya registrado
                 let esLineaDeRol = c.textoLimpio.includes("PRINCIPAL") || c.textoLimpio.includes("AUXILIAR") || 
                                    c.textoLimpio.includes("CONDUCTOR") || c.textoLimpio.includes("CONDUC") || 
                                    c.textoLimpio.includes("ENFERMERO") || c.textoLimpio.includes("RELEVO");
 
                 if (!huellasRegistradas.has(huella)) {
-                    // Si es una línea corta de rol, no la añadimos al reporte final, pero sí registramos la huella 
-                    // para asegurar que cuando el motor analice la línea oficial más larga la reconozca (o viceversa)
                     if (!esLineaDeRol) {
                         estructuraNombresFinal[nov].push(`  ${c.original} - ${c.fuenteNombre}`);
                     }
@@ -336,7 +330,6 @@
             output += `${fmt(estructuraConteos[nov])}\n`;
             
             if (estructuraNombresFinal[nov].length > 0) {
-                // Invertimos el orden para mantener la consistencia alfabética o de ingreso original
                 let listadoImpresion = [...new Set(estructuraNombresFinal[nov])].sort();
                 listadoImpresion.forEach(nom => {
                     output += `${nom}\n`;
