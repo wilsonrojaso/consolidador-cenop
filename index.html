@@ -32,7 +32,7 @@
             padding-bottom: 10px;
             margin-bottom: 25px;
             text-transform: uppercase;
-            font-size: 18px;
+            font-size: 20px; /* Un poco más grande */
             letter-spacing: 1px;
         }
         .seccion {
@@ -49,10 +49,10 @@
             text-transform: uppercase;
             border-left: 4px solid var(--verde-tactico);
             padding-left: 10px;
-            font-size: 15px;
+            font-size: 16px;
         }
         p {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--gris-txt);
             margin-top: -5px;
             margin-bottom: 15px;
@@ -63,10 +63,10 @@
             border: 1px solid var(--borde);
             color: var(--texto-claro);
             border-radius: 5px;
-            padding: 10px;
+            padding: 12px;
             box-sizing: border-box;
             font-family: monospace;
-            font-size: 12px;
+            font-size: 15px; /* LETRA DE CASILLAS MÁS GRANDE */
             resize: vertical;
         }
         textarea:focus {
@@ -92,7 +92,7 @@
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
-            font-size: 14px;
+            font-size: 15px;
             letter-spacing: 0.5px;
             transition: 0.2s;
         }
@@ -102,12 +102,12 @@
             border-left: 4px solid var(--verde-tactico);
             font-family: 'Courier New', Courier, monospace;
             white-space: pre-wrap;
-            padding: 15px;
+            padding: 18px;
             border-radius: 5px;
             color: #adfa1d;
             margin-top: 15px;
-            font-size: 13px;
-            line-height: 1.4;
+            font-size: 16px; /* REPORTE GENERAL CON LETRA MÁS GRANDE */
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -124,15 +124,15 @@
         
         <div class="grid-entradas">
             <div>
-                <label style="font-size:12px; font-weight:bold; color:var(--verde-tactico)">1. GRANADEROS</label>
+                <label style="font-size:13px; font-weight:bold; color:var(--verde-tactico)">1. GRANADEROS</label>
                 <textarea id="txt-granaderos" rows="12" placeholder="Pegue el parte de Granaderos aquí..."></textarea>
             </div>
             <div>
-                <label style="font-size:12px; font-weight:bold; color:var(--verde-tactico)">2. GRUPO COR</label>
+                <label style="font-size:13px; font-weight:bold; color:var(--verde-tactico)">2. GRUPO COR</label>
                 <textarea id="txt-cor" rows="12" placeholder="Pegue el parte de COR aquí..."></textarea>
             </div>
             <div>
-                <label style="font-size:12px; font-weight:bold; color:var(--verde-tactico)">3. TIRO POLICIAL</label>
+                <label style="font-size:13px; font-weight:bold; color:var(--verde-tactico)">3. TIRO POLICIAL</label>
                 <textarea id="txt-tiro" rows="12" placeholder="Pegue el parte de Tiro aquí..."></textarea>
             </div>
         </div>
@@ -150,8 +150,10 @@
 </div>
 
 <script>
+    // MATRIZ ACTUALIZADA (SE ELIMINÓ SERVICIOS COMPLETAMENTE)
     const NOVEDADES_LISTA = [
-        "FORMACIÓN", "LABORANDO", "SERVICIOS", "FRANQUICIA", "EXCUSA TOTAL", 
+        "FORMACIÓN", "LABORANDO", "OFICIAL DE SERVICIO", "SUB SERVICIO", 
+        "S.SEMANA", "FRANQUICIA", "EXCUSA TOTAL", "LEY MARÍA", "LEY JOSÉ", 
         "PERMISOS ESPECIALES", "VACACIONES", "HOSPITALIZADO", 
         "INCAPACIDAD PARCIAL", "COMISIÓN SERVICIO", "COMISIÓN ESTUDIO"
     ];
@@ -190,13 +192,11 @@
                 let lOriginal = lineas[i].trim();
                 if (!lOriginal) continue;
 
-                // Normalización sin tildes para evitar fallas de digitación
                 let lLimpia = lOriginal.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 lLimpia = lLimpia.replace(/[\*\s·•\-\.:_]+/g, ' ').trim().toUpperCase();
 
                 if (!lLimpia) continue;
 
-                // CAPTURA DE VECTORES SUPERIORES
                 if (lLimpia.startsWith("FUERZA EFE") || lLimpia.startsWith("FUERZA DIS")) {
                     if (i < lineas.length * 0.4) {
                         const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
@@ -216,24 +216,25 @@
                     continue;
                 }
 
-                // FIN DEL REPORTE
                 if (lLimpia.includes("RESUMEN DE DISPONIBILIDAD") || lLimpia.includes("RESUMEN DISPONIBILIDAD")) {
                     novedadActual = "";
                     continue;
                 }
 
-                // Identificación robusta de secciones
                 let detectoCambio = false;
                 if (lLimpia.includes("FORMACION")) { novedadActual = "FORMACIÓN"; detectoCambio = true; }
                 else if (lLimpia.includes("LABORANDO")) { novedadActual = "LABORANDO"; detectoCambio = true; }
-                else if (lLimpia.includes("SERVICIOS")) { novedadActual = "SERVICIOS"; detectoCambio = true; }
+                else if (lLimpia.includes("OFICIAL DE SERVICIO") || lLimpia.includes("OFICIAL SERVICIO")) { novedadActual = "OFICIAL DE SERVICIO"; detectoCambio = true; }
+                else if (lLimpia.includes("SUB SERVICIO")) { novedadActual = "SUB SERVICIO"; detectoCambio = true; }
+                else if (lLimpia.includes("S SEMANA") || lLimpia.includes("SSEMANA")) { novedadActual = "S.SEMANA"; detectoCambio = true; }
                 else if (lLimpia.includes("FRANQUICIA")) { novedadActual = "FRANQUICIA"; detectoCambio = true; }
                 else if (lLimpia.includes("EXCUSA TOTAL")) { novedadActual = "EXCUSA TOTAL"; detectoCambio = true; }
+                else if (lLimpia.includes("LEY MARIA")) { novedadActual = "LEY MARÍA"; detectoCambio = true; }
+                else if (lLimpia.includes("LEY JOSE")) { novedadActual = "LEY JOSÉ"; detectoCambio = true; }
                 else if (lLimpia.includes("PERMISOS ESPECIALES") || lLimpia.includes("PERMISOS ESP")) { novedadActual = "PERMISOS ESPECIALES"; detectoCambio = true; }
                 else if (lLimpia.includes("VACACIONES")) { novedadActual = "VACACIONES"; detectoCambio = true; }
                 else if (lLimpia.includes("HOSPITALIZADO")) { novedadActual = "HOSPITALIZADO"; detectoCambio = true; }
                 else if (lLimpia.includes("INCAPACIDAD PARCIAL") || lLimpia.includes("INCAPACIDAD")) { novedadActual = "INCAPACIDAD PARCIAL"; detectoCambio = true; }
-                // Corrección Crítica: Filtrar ESTUDIO de manera prioritaria antes que Servicio general
                 else if (lLimpia.includes("ESTUDIO")) { novedadActual = "COMISIÓN ESTUDIO"; detectoCambio = true; }
                 else if (lLimpia.includes("COMISION DEL SERVICIO") || lLimpia.includes("COMISION SERVICIO") || lLimpia.includes("COMISION SER") || lLimpia.includes("COMISION DE SERVICIO")) { novedadActual = "COMISIÓN SERVICIO"; detectoCambio = true; }
 
@@ -242,7 +243,7 @@
                 if (novedadActual) {
                     const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
                     if (vectorMatch) {
-                        if (i < lineas.length * 0.85) { // Ampliado el rango de búsqueda interna de vectores
+                        if (i < lineas.length * 0.85) { 
                             estructuraConteos[novedadActual][0] += parseInt(vectorMatch[1]);
                             estructuraConteos[novedadActual][1] += parseInt(vectorMatch[2]);
                             estructuraConteos[novedadActual][2] += parseInt(vectorMatch[3]);
@@ -308,7 +309,7 @@
 
         let totalNov = [0,0,0,0];
         NOVEDADES_LISTA.forEach(nov => {
-            if (nov !== "FORMACIÓN" && nov !== "LABORANDO" && nov !== "SERVICIOS") {
+            if (nov !== "FORMACIÓN" && nov !== "LABORANDO") {
                 for (let i = 0; i < 4; i++) totalNov[i] += estructuraConteos[nov][i];
             }
         });
@@ -345,6 +346,7 @@
         output += `Fuerza Efe: ${fmt(totalEfe)}\n`;
         output += `Fuerza Dis: ${fmt(totalDis)}\n`;
         output += `Novedades:  ${fmt(totalNov)}\n`;
+        output += `..................................\n`;
         
         NOVEDADES_LISTA.forEach(nov => {
             let tituloMin = nov.charAt(0) + nov.slice(1).toLowerCase();
@@ -352,6 +354,7 @@
             if (nov === "INCAPACIDAD PARCIAL") tituloMin = "Incapacidad";
             if (nov === "COMISIÓN SERVICIO") tituloMin = "Comisión Ser";
             if (nov === "COMISIÓN ESTUDIO") tituloMin = "Comisión Estudio";
+            if (nov === "OFICIAL DE SERVICIO") tituloMin = "Oficial Servicio";
             
             let espacio = tituloMin.length < 15 ? " ".repeat(16 - tituloMin.length) : " ";
             output += `${tituloMin}:${espacio}${fmt(estructuraConteos[nov])}\n`;
