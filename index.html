@@ -32,7 +32,7 @@
             padding-bottom: 10px;
             margin-bottom: 25px;
             text-transform: uppercase;
-            font-size: 20px; /* Un poco más grande */
+            font-size: 20px;
             letter-spacing: 1px;
         }
         .seccion {
@@ -66,7 +66,7 @@
             padding: 12px;
             box-sizing: border-box;
             font-family: monospace;
-            font-size: 15px; /* LETRA DE CASILLAS MÁS GRANDE */
+            font-size: 15px;
             resize: vertical;
         }
         textarea:focus {
@@ -97,17 +97,25 @@
             transition: 0.2s;
         }
         button:hover { opacity: 0.9; }
+
+        /* SOLUCIÓN HORIZONTAL ADAPTATIVA PARA EVITAR SOBREPOSICIÓN EN MÓVILES */
         .resultado-reporte {
             background-color: #020617;
             border-left: 4px solid var(--verde-tactico);
             font-family: 'Courier New', Courier, monospace;
-            white-space: pre-wrap;
+            white-space: pre;          /* Mantiene la estructura de líneas intacta sin quiebres artificiales */
+            overflow-x: auto;          /* Habilita scroll horizontal dinámico si el texto supera la pantalla */
+            word-wrap: normal;         /* Evita el colapso de palabras largas */
+            word-break: keep-all;      /* Asegura que los nombres y novedades extensas no se monten */
             padding: 18px;
             border-radius: 5px;
             color: #adfa1d;
             margin-top: 15px;
-            font-size: 16px; /* REPORTE GENERAL CON LETRA MÁS GRANDE */
+            font-size: 16px;
             line-height: 1.5;
+            width: 100%;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch; /* Suaviza el desplazamiento táctil en iOS y Android */
         }
     </style>
 </head>
@@ -150,13 +158,24 @@
 </div>
 
 <script>
-    // MATRIZ ACTUALIZADA (SE ELIMINÓ SERVICIOS COMPLETAMENTE)
-    const NOVEDADES_LISTA = [
-        "FORMACIÓN", "LABORANDO", "OFICIAL DE SERVICIO", "SUB SERVICIO", 
-        "S.SEMANA", "FRANQUICIA", "EXCUSA TOTAL", "LEY MARÍA", "LEY JOSÉ", 
-        "PERMISOS ESPECIALES", "VACACIONES", "HOSPITALIZADO", 
-        "INCAPACIDAD PARCIAL", "COMISIÓN SERVICIO", "COMISIÓN ESTUDIO"
+    // LISTA MAESTRA DE LAS 43 SITUACIONES Y NOVEDADES (ACTUALIZADA Y COMPLETA)
+    const BASE_NOVEDADES_MAESTRA = [
+        "FORMACIÓN", "LABORANDO", "OFICIAL DE SERVICIO", "SUB SERVICIO", "S.SEMANA", 
+        "FRANQUICIA", "EXCUSA TOTAL", "LEY MARÍA", "LEY JOSÉ", "PERMISOS ESPECIALES", 
+        "VACACIONES", "HOSPITALIZADO", "INCAPACIDAD PARCIAL", "COMISIÓN SERVICIO", "COMISIÓN ESTUDIO",
+        "PERMISO SEMANA SANTA", "PERMISO DICIEMBRE", "APOYO AXP PERMANENTE", "APOYO SEGURIDAD", 
+        "COMISIÓN AL EXTERIOR", "COMISIÓN DE ESTUDIOS EN EL EXTERIOR", "PERMISO DILIGENCIA PERSONAL", 
+        "CURSO DE ASCENSO", "PERMISO CITA MÉDICA", "SEPARACIÓN TEMPORAL", "EVADIDO", 
+        "EXCUSA PARCIAL", "CONCURSO PATRULLEROS", "LICENCIA DE MATERNIDAD O PATERNIDAD", 
+        "LICENCIA NO REMUNERADA", "LICENCIA POR LUTO", "LICENCIA REMUNERADA", 
+        "PENDIENTE ACTUALIZAR TRASLADO SIATH", "PENDIENTE POR RETIRAR", "CAPTURADO", 
+        "RECIEN TRASLADADO (NO PRESENTADO AL CENOP)", "RECIEN TRASLADADO (PENDIENTE POR PRESENTAR A LA UNIDAD)", 
+        "PENDIENTE POR TRAMITE DE REINTEGRO", "SUSPENSIÓN", "CLASE AXP", "REALIZÓ 1RO 1500", 
+        "CITA MEDICA CENOP", "RETRASADO"
     ];
+
+    // ELIMINACIÓN AUTOMÁTICA DE DUPLICADOS: Limpia espacios y convierte a mayúsculas para comparar de forma segura
+    const NOVEDADES_LISTA = [...new Set(BASE_NOVEDADES_MAESTRA.map(n => n.toUpperCase().trim()))];
 
     const GRADOS_VALIDOS = ["MY", "CT", "TE", "ST", "CM", "SC", "IJ", "IT", "SI", "PT", "PP"];
 
@@ -222,21 +241,27 @@
                 }
 
                 let detectoCambio = false;
-                if (lLimpia.includes("FORMACION")) { novedadActual = "FORMACIÓN"; detectoCambio = true; }
-                else if (lLimpia.includes("LABORANDO")) { novedadActual = "LABORANDO"; detectoCambio = true; }
-                else if (lLimpia.includes("OFICIAL DE SERVICIO") || lLimpia.includes("OFICIAL SERVICIO")) { novedadActual = "OFICIAL DE SERVICIO"; detectoCambio = true; }
-                else if (lLimpia.includes("SUB SERVICIO")) { novedadActual = "SUB SERVICIO"; detectoCambio = true; }
-                else if (lLimpia.includes("S SEMANA") || lLimpia.includes("SSEMANA")) { novedadActual = "S.SEMANA"; detectoCambio = true; }
-                else if (lLimpia.includes("FRANQUICIA")) { novedadActual = "FRANQUICIA"; detectoCambio = true; }
-                else if (lLimpia.includes("EXCUSA TOTAL")) { novedadActual = "EXCUSA TOTAL"; detectoCambio = true; }
-                else if (lLimpia.includes("LEY MARIA")) { novedadActual = "LEY MARÍA"; detectoCambio = true; }
-                else if (lLimpia.includes("LEY JOSE")) { novedadActual = "LEY JOSÉ"; detectoCambio = true; }
-                else if (lLimpia.includes("PERMISOS ESPECIALES") || lLimpia.includes("PERMISOS ESP")) { novedadActual = "PERMISOS ESPECIALES"; detectoCambio = true; }
-                else if (lLimpia.includes("VACACIONES")) { novedadActual = "VACACIONES"; detectoCambio = true; }
-                else if (lLimpia.includes("HOSPITALIZADO")) { novedadActual = "HOSPITALIZADO"; detectoCambio = true; }
-                else if (lLimpia.includes("INCAPACIDAD PARCIAL") || lLimpia.includes("INCAPACIDAD")) { novedadActual = "INCAPACIDAD PARCIAL"; detectoCambio = true; }
-                else if (lLimpia.includes("ESTUDIO")) { novedadActual = "COMISIÓN ESTUDIO"; detectoCambio = true; }
-                else if (lLimpia.includes("COMISION DEL SERVICIO") || lLimpia.includes("COMISION SERVICIO") || lLimpia.includes("COMISION SER") || lLimpia.includes("COMISION DE SERVICIO")) { novedadActual = "COMISIÓN SERVICIO"; detectoCambio = true; }
+                
+                // Mapeador dinámico inteligente para identificar a qué novedad pertenece la línea
+                for (let n = 0; n < NOVEDADES_LISTA.length; n++) {
+                    let tokenNov = NOVEDADES_LISTA[n].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    
+                    // Excepciones y abreviaturas comunes de WhatsApp
+                    if (tokenNov === "FORMACION" && lLimpia.includes("FORMACION")) { novedadActual = "FORMACIÓN"; detectoCambio = true; break; }
+                    if (tokenNov === "OFICIAL DE SERVICIO" && (lLimpia.includes("OFICIAL DE SERVICIO") || lLimpia.includes("OFICIAL SERVICIO"))) { novedadActual = "OFICIAL DE SERVICIO"; detectoCambio = true; break; }
+                    if (tokenNov === "S.SEMANA" && (lLimpia.includes("S SEMANA") || lLimpia.includes("SSEMANA") || lLimpia.includes("S.SEMANA"))) { novedadActual = "S.SEMANA"; detectoCambio = true; break; }
+                    if (tokenNov === "PERMISOS ESPECIALES" && (lLimpia.includes("PERMISOS ESPECIALES") || lLimpia.includes("PERMISOS ESP"))) { novedadActual = "PERMISOS ESPECIALES"; detectoCambio = true; break; }
+                    if (tokenNov === "INCAPACIDAD PARCIAL" && (lLimpia.includes("INCAPACIDAD PARCIAL") || lLimpia.includes("INCAPACIDAD"))) { novedadActual = "INCAPACIDAD PARCIAL"; detectoCambio = true; break; }
+                    if (tokenNov === "COMISIÓN SERVICIO" && (lLimpia.includes("COMISION DEL SERVICIO") || lLimpia.includes("COMISION SERVICIO") || lLimpia.includes("COMISION SER") || lLimpia.includes("COMISION DE SERVICIO"))) { novedadActual = "COMISIÓN SERVICIO"; detectoCambio = true; break; }
+                    if (tokenNov === "COMISIÓN ESTUDIO" && lLimpia.includes("ESTUDIO") && !lLimpia.includes("EXTERIOR")) { novedadActual = "COMISIÓN ESTUDIO"; detectoCambio = true; break; }
+                    
+                    // Comparación directa estándar para el resto de novedades
+                    if (lLimpia.includes(tokenNov)) {
+                        novedadActual = NOVEDADES_LISTA[n];
+                        detectoCambio = true;
+                        break;
+                    }
+                }
 
                 if (detectoCambio) continue;
 
@@ -326,19 +351,24 @@
         output += `Novedades: ${fmt(totalNov)}\n`;
         output += `.............................................\n\n`;
 
+        // RECORRIDO DE SECCIONES DETALLADAS: Solo genera la sección si hay personal reportado (> 0)
         NOVEDADES_LISTA.forEach(nov => {
-            output += `*${nov}*\n`;
-            output += `${fmt(estructuraConteos[nov])}\n`;
+            let totalEnNov = estructuraConteos[nov].reduce((x,y)=>x+y,0);
             
-            if (estructuraNombresFinal[nov].length > 0) {
-                let listadoImpresion = [...new Set(estructuraNombresFinal[nov])].sort();
-                listadoImpresion.forEach(nom => {
-                    output += `${nom}\n`;
-                });
-            } else {
-                output += `  Ninguno\n`;
+            if (totalEnNov > 0) {
+                output += `*${nov}*\n`;
+                output += `${fmt(estructuraConteos[nov])}\n`;
+                
+                if (estructuraNombresFinal[nov].length > 0) {
+                    let listadoImpresion = [...new Set(estructuraNombresFinal[nov])].sort();
+                    listadoImpresion.forEach(nom => {
+                        output += `${nom}\n`;
+                    });
+                } else {
+                    output += `  Ninguno\n`;
+                }
+                output += `\n`;
             }
-            output += `\n`;
         });
 
         output += `.............................................\n`;
@@ -348,16 +378,21 @@
         output += `Novedades:  ${fmt(totalNov)}\n`;
         output += `..................................\n`;
         
+        // RECORRIDO DEL RESUMEN NUMÉRICO FINAL: Solo añade la línea si la novedad no está en ceros
         NOVEDADES_LISTA.forEach(nov => {
-            let tituloMin = nov.charAt(0) + nov.slice(1).toLowerCase();
-            if (nov === "PERMISOS ESPECIALES") tituloMin = "Permisos Esp";
-            if (nov === "INCAPACIDAD PARCIAL") tituloMin = "Incapacidad";
-            if (nov === "COMISIÓN SERVICIO") tituloMin = "Comisión Ser";
-            if (nov === "COMISIÓN ESTUDIO") tituloMin = "Comisión Estudio";
-            if (nov === "OFICIAL DE SERVICIO") tituloMin = "Oficial Servicio";
+            let totalEnNov = estructuraConteos[nov].reduce((x,y)=>x+y,0);
             
-            let espacio = tituloMin.length < 15 ? " ".repeat(16 - tituloMin.length) : " ";
-            output += `${tituloMin}:${espacio}${fmt(estructuraConteos[nov])}\n`;
+            if (totalEnNov > 0) {
+                let tituloMin = nov.charAt(0) + nov.slice(1).toLowerCase();
+                if (nov === "PERMISOS ESPECIALES") tituloMin = "Permisos Esp";
+                if (nov === "INCAPACIDAD PARCIAL") tituloMin = "Incapacidad";
+                if (nov === "COMISIÓN SERVICIO") tituloMin = "Comisión Ser";
+                if (nov === "COMISIÓN ESTUDIO") tituloMin = "Comisión Estudio";
+                if (nov === "OFICIAL DE SERVICIO") tituloMin = "Oficial Servicio";
+                
+                let espacio = tituloMin.length < 15 ? " ".repeat(16 - tituloMin.length) : " ";
+                output += `${tituloMin}:${espacio}${fmt(estructuraConteos[nov])}\n`;
+            }
         });
 
         document.getElementById('texto-consolidado-final').innerText = output;
