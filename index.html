@@ -98,15 +98,14 @@
         }
         button:hover { opacity: 0.9; }
 
-        /* SOLUCIÓN HORIZONTAL ADAPTATIVA PARA EVITAR SOBREPOSICIÓN EN MÓVILES */
         .resultado-reporte {
             background-color: #020617;
             border-left: 4px solid var(--verde-tactico);
             font-family: 'Courier New', Courier, monospace;
-            white-space: pre;          /* Mantiene la estructura de líneas intacta sin quiebres artificiales */
-            overflow-x: auto;          /* Habilita scroll horizontal dinámico si el texto supera la pantalla */
-            word-wrap: normal;         /* Evita el colapso de palabras largas */
-            word-break: keep-all;      /* Asegura que los nombres y novedades extensas no se monten */
+            white-space: pre;          
+            overflow-x: auto;          
+            word-wrap: normal;         
+            word-break: keep-all;      
             padding: 18px;
             border-radius: 5px;
             color: #adfa1d;
@@ -115,7 +114,7 @@
             line-height: 1.5;
             width: 100%;
             box-sizing: border-box;
-            -webkit-overflow-scrolling: touch; /* Suaviza el desplazamiento táctil en iOS y Android */
+            -webkit-overflow-scrolling: touch; 
         }
     </style>
 </head>
@@ -158,7 +157,6 @@
 </div>
 
 <script>
-    // LISTA MAESTRA DE LAS 43 SITUACIONES Y NOVEDADES (ACTUALIZADA Y COMPLETA)
     const BASE_NOVEDADES_MAESTRA = [
         "FORMACIÓN", "LABORANDO", "OFICIAL DE SERVICIO", "SUB SERVICIO", "S.SEMANA", 
         "FRANQUICIA", "EXCUSA TOTAL", "LEY MARÍA", "LEY JOSÉ", "PERMISOS ESPECIALES", 
@@ -174,7 +172,6 @@
         "CITA MEDICA CENOP", "RETRASADO"
     ];
 
-    // ELIMINACIÓN AUTOMÁTICA DE DUPLICADOS: Limpia espacios y convierte a mayúsculas para comparar de forma segura
     const NOVEDADES_LISTA = [...new Set(BASE_NOVEDADES_MAESTRA.map(n => n.toUpperCase().trim()))];
 
     const GRADOS_VALIDOS = ["MY", "CT", "TE", "ST", "CM", "SC", "IJ", "IT", "SI", "PT", "PP"];
@@ -182,6 +179,7 @@
     function procesarYConsolidar() {
         let totalEfe = [0,0,0,0];
         let totalDis = [0,0,0,0];
+        let totalNov = [0,0,0,0];
 
         let estructuraConteos = {};
         let estructuraNombresRaw = {};
@@ -216,22 +214,21 @@
 
                 if (!lLimpia) continue;
 
-                if (lLimpia.startsWith("FUERZA EFE") || lLimpia.startsWith("FUERZA DIS")) {
+                if (lLimpia.startsWith("FUERZA EFE")) {
                     if (i < lineas.length * 0.4) {
                         const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
                         if (vectorMatch) {
-                            let v0 = parseInt(vectorMatch[1]);
-                            let v1 = parseInt(vectorMatch[2]);
-                            let v2 = parseInt(vectorMatch[3]);
-                            let v3 = parseInt(vectorMatch[4]);
-
-                            if (lLimpia.includes("EFE")) {
-                                totalEfe[0] += v0; totalEfe[1] += v1; totalEfe[2] += v2; totalEfe[3] += v3;
-                            } else if (lLimpia.includes("DIS")) {
-                                totalDis[0] += v0; totalDis[1] += v1; totalDis[2] += v2; totalDis[3] += v3;
-                            }
+                            totalEfe[0] += parseInt(vectorMatch[1]); 
+                            totalEfe[1] += parseInt(vectorMatch[2]); 
+                            totalEfe[2] += parseInt(vectorMatch[3]); 
+                            totalEfe[3] += parseInt(vectorMatch[4]);
                         }
                     }
+                    continue;
+                }
+
+                if (lLimpia.startsWith("FUERZA DIS") || lLimpia.startsWith("NOVEDADES")) {
+                    // Omitimos estas líneas del encabezado para calcularlas dinámicamente y con precisión abajo
                     continue;
                 }
 
@@ -242,11 +239,9 @@
 
                 let detectoCambio = false;
                 
-                // Mapeador dinámico inteligente para identificar a qué novedad pertenece la línea
                 for (let n = 0; n < NOVEDADES_LISTA.length; n++) {
                     let tokenNov = NOVEDADES_LISTA[n].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                     
-                    // Excepciones y abreviaturas comunes de WhatsApp
                     if (tokenNov === "FORMACION" && lLimpia.includes("FORMACION")) { novedadActual = "FORMACIÓN"; detectoCambio = true; break; }
                     if (tokenNov === "OFICIAL DE SERVICIO" && (lLimpia.includes("OFICIAL DE SERVICIO") || lLimpia.includes("OFICIAL SERVICIO"))) { novedadActual = "OFICIAL DE SERVICIO"; detectoCambio = true; break; }
                     if (tokenNov === "S.SEMANA" && (lLimpia.includes("S SEMANA") || lLimpia.includes("SSEMANA") || lLimpia.includes("S.SEMANA"))) { novedadActual = "S.SEMANA"; detectoCambio = true; break; }
@@ -255,7 +250,6 @@
                     if (tokenNov === "COMISIÓN SERVICIO" && (lLimpia.includes("COMISION DEL SERVICIO") || lLimpia.includes("COMISION SERVICIO") || lLimpia.includes("COMISION SER") || lLimpia.includes("COMISION DE SERVICIO"))) { novedadActual = "COMISIÓN SERVICIO"; detectoCambio = true; break; }
                     if (tokenNov === "COMISIÓN ESTUDIO" && lLimpia.includes("ESTUDIO") && !lLimpia.includes("EXTERIOR")) { novedadActual = "COMISIÓN ESTUDIO"; detectoCambio = true; break; }
                     
-                    // Comparación directa estándar para el resto de novedades
                     if (lLimpia.includes(tokenNov)) {
                         novedadActual = NOVEDADES_LISTA[n];
                         detectoCambio = true;
@@ -306,6 +300,21 @@
             return;
         }
 
+        // REGLA DOCTRINARIA CORREGIDA:
+        // Fuerza DIS es igual a lo acumulado estrictamente en FORMACIÓN.
+        // Novedades (totalNov) acumula TODO lo demás que no sea FORMACIÓN (incluye LABORANDO).
+        for (let i = 0; i < 4; i++) {
+            totalDis[i] = estructuraConteos["FORMACIÓN"][i];
+        }
+
+        NOVEDADES_LISTA.forEach(nov => {
+            if (nov !== "FORMACIÓN") {
+                for (let i = 0; i < 4; i++) {
+                    totalNov[i] += estructuraConteos[nov][i];
+                }
+            }
+        });
+
         let estructuraNombresFinal = {};
         NOVEDADES_LISTA.forEach(nov => {
             estructuraNombresFinal[nov] = [];
@@ -332,13 +341,6 @@
             });
         });
 
-        let totalNov = [0,0,0,0];
-        NOVEDADES_LISTA.forEach(nov => {
-            if (nov !== "FORMACIÓN" && nov !== "LABORANDO") {
-                for (let i = 0; i < 4; i++) totalNov[i] += estructuraConteos[nov][i];
-            }
-        });
-
         const fmt = (v) => `${v[0]}-${v[1]}-${v[2]}-${v[3]}= ${v.reduce((x,y)=>x+y,0)}`;
 
         let f = new Date();
@@ -348,10 +350,9 @@
         output += `Fecha de Consolidación: ${fechaStr}\n\n`;
         output += `Fuerza Efe: ${fmt(totalEfe)}\n`;
         output += `Fuerza Dis: ${fmt(totalDis)}\n`;
-        output += `Novedades: ${fmt(totalNov)}\n`;
+        output += `Novedades:  ${fmt(totalNov)}\n`;
         output += `.............................................\n\n`;
 
-        // RECORRIDO DE SECCIONES DETALLADAS: Solo genera la sección si hay personal reportado (> 0)
         NOVEDADES_LISTA.forEach(nov => {
             let totalEnNov = estructuraConteos[nov].reduce((x,y)=>x+y,0);
             
@@ -378,7 +379,6 @@
         output += `Novedades:  ${fmt(totalNov)}\n`;
         output += `..................................\n`;
         
-        // RECORRIDO DEL RESUMEN NUMÉRICO FINAL: Solo añade la línea si la novedad no está en ceros
         NOVEDADES_LISTA.forEach(nov => {
             let totalEnNov = estructuraConteos[nov].reduce((x,y)=>x+y,0);
             
