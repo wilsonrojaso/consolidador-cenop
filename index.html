@@ -32,7 +32,7 @@
             padding-bottom: 10px;
             margin-bottom: 25px;
             text-transform: uppercase;
-            font-size: 20px;
+            font-size: 18px;
             letter-spacing: 1px;
         }
         .seccion {
@@ -41,7 +41,7 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         h3 {
             color: var(--verde-tactico);
@@ -49,72 +49,67 @@
             text-transform: uppercase;
             border-left: 4px solid var(--verde-tactico);
             padding-left: 10px;
-            font-size: 16px;
+            font-size: 15px;
         }
-        p {
-            font-size: 14px;
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: bold;
             color: var(--gris-txt);
-            margin-top: -5px;
-            margin-bottom: 15px;
         }
         textarea {
             width: 100%;
-            background-color: var(--bg-principal);
+            padding: 12px;
+            background-color: #0b1329;
             border: 1px solid var(--borde);
             color: var(--texto-claro);
-            border-radius: 5px;
-            padding: 12px;
+            border-radius: 6px;
             box-sizing: border-box;
-            font-family: monospace;
-            font-size: 15px;
+            font-size: 14px;
             resize: vertical;
+            font-family: monospace;
         }
         textarea:focus {
             border-color: var(--verde-tactico);
             outline: none;
         }
-        .grid-entradas {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        @media (min-width: 768px) {
-            .grid-entradas { grid-template-columns: 1fr 1fr 1fr; }
-        }
         button {
-            background-color: var(--exito);
-            color: var(--bg-principal);
+            background-color: var(--verde-tactico);
+            color: #0b1329;
             border: none;
             padding: 14px;
             font-weight: bold;
             text-transform: uppercase;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             width: 100%;
-            font-size: 15px;
-            letter-spacing: 0.5px;
+            font-size: 14px;
             transition: 0.2s;
+            margin-top: 10px;
         }
-        button:hover { opacity: 0.9; }
-
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
         .resultado-reporte {
-            background-color: #020617;
-            border-left: 4px solid var(--verde-tactico);
+            background-color: #ffffff;
+            border: 2px solid var(--verde-tactico);
+            border-left: 6px solid var(--exito);
             font-family: 'Courier New', Courier, monospace;
-            white-space: pre;          
-            overflow-x: auto;          
-            word-wrap: normal;         
-            word-break: keep-all;      
-            padding: 18px;
+            white-space: pre-wrap;
+            padding: 15px;
             border-radius: 5px;
-            color: #adfa1d;
+            color: #000000;
             margin-top: 15px;
-            font-size: 16px;
-            line-height: 1.5;
-            width: 100%;
-            box-sizing: border-box;
-            -webkit-overflow-scrolling: touch; 
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        .instrucciones {
+            font-size: 12px;
+            color: var(--gris-txt);
+            margin-bottom: 15px;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -122,278 +117,290 @@
 
 <div class="contenedor">
     <div class="titulo-app">
-        <strong>Consolidador General de Partes e Instructores</strong>
+        <strong>Consolidador General de Fuerzas</strong>
     </div>
 
     <div class="seccion">
         <h3>Pegar Reportes de WhatsApp</h3>
-        <p>Pegue el texto tal cual como llega de WhatsApp de cada grupo en su respectiva casilla.</p>
+        <p class="instrucciones">Pegue los reportes de Granaderos, COR y Tiro Policial. Las listas unificadas se ordenarán automáticamente bajo la estricta jerarquía institucional (CM, SC, IJ, IT, SI, PT).</p>
         
-        <div class="grid-entradas">
-            <div>
-                <label style="font-size:13px; font-weight:bold; color:var(--verde-tactico)">1. GRANADEROS</label>
-                <textarea id="txt-granaderos" rows="12" placeholder="Pegue el parte de Granaderos aquí..."></textarea>
-            </div>
-            <div>
-                <label style="font-size:13px; font-weight:bold; color:var(--verde-tactico)">2. GRUPO COR</label>
-                <textarea id="txt-cor" rows="12" placeholder="Pegue el parte de COR aquí..."></textarea>
-            </div>
-            <div>
-                <label style="font-size:13px; font-weight:bold; color:var(--verde-tactico)">3. TIRO POLICIAL</label>
-                <textarea id="txt-tiro" rows="12" placeholder="Pegue el parte de Tiro aquí..."></textarea>
-            </div>
+        <div style="margin-bottom: 15px;">
+            <label>1. Reporte de GRANADEROS:</label>
+            <textarea id="txt-granaderos" rows="4" placeholder="Pegue el texto del reporte de Granaderos aquí..."></textarea>
         </div>
 
-        <button onclick="procesarYConsolidar()">Generar Consolidado General</button>
+        <div style="margin-bottom: 15px;">
+            <label>2. Reporte de GRUPO COR:</label>
+            <textarea id="txt-cor" rows="4" placeholder="Pegue el texto del reporte de COR aquí..."></textarea>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>3. Reporte de TIRO POLICIAL:</label>
+            <textarea id="txt-tiro" rows="4" placeholder="Pegue el texto del reporte de Tiro Policial aquí..."></textarea>
+        </div>
+
+        <button onclick="procesarConsolidado()">Generar Consolidado Jerárquico</button>
     </div>
 
-    <div id="seccion-resultado" class="seccion" style="display: none;">
-        <h3>Consolidado Listo para Enviar</h3>
-        <button onclick="copiarConsolidado()" style="background-color: var(--verde-tactico); color: white; margin-bottom: 15px; padding: 10px;">
-            Copiar Consolidado para WhatsApp
-        </button>
+    <div class="seccion" id="seccion-resultado" style="display: none;">
+        <h3>Consolidado General de Instructores</h3>
+        <button onclick="copiarConsolidado()" style="background-color: var(--exito); color: #0b1329; margin-bottom: 15px;">Copiar Consolidado para WhatsApp</button>
         <div class="resultado-reporte" id="texto-consolidado-final"></div>
     </div>
 </div>
 
 <script>
-    const BASE_NOVEDADES_MAESTRA = [
-        "FORMACIÓN", "LABORANDO", "OFICIAL DE SERVICIO", "SUB SERVICIO", "S.SEMANA", 
-        "FRANQUICIA", "EXCUSA TOTAL", "LEY MARÍA", "LEY JOSÉ", "PERMISOS ESPECIALES", 
-        "VACACIONES", "HOSPITALIZADO", "INCAPACIDAD PARCIAL", "COMISIÓN SERVICIO", "COMISIÓN ESTUDIO",
-        "PERMISO SEMANA SANTA", "PERMISO DICIEMBRE", "APOYO AXP PERMANENTE", "APOYO SEGURIDAD", 
-        "COMISIÓN AL EXTERIOR", "COMISIÓN DE ESTUDIOS EN EL EXTERIOR", "PERMISO DILIGENCIA PERSONAL", 
-        "CURSO DE ASCENSO", "PERMISO CITA MÉDICA", "SEPARACIÓN TEMPORAL", "EVADIDO", 
-        "EXCUSA PARCIAL", "CONCURSO PATRULLEROS", "LICENCIA DE MATERNIDAD O PATERNIDAD", 
-        "LICENCIA NO REMUNERADA", "LICENCIA POR LUTO", "LICENCIA REMUNERADA", 
-        "PENDIENTE ACTUALIZAR TRASLADO SIATH", "PENDIENTE POR RETIRAR", "CAPTURADO", 
-        "RECIEN TRASLADADO (NO PRESENTADO AL CENOP)", "RECIEN TRASLADADO (PENDIENTE POR PRESENTAR A LA UNIDAD)", 
-        "PENDIENTE POR TRAMITE DE REINTEGRO", "SUSPENSIÓN", "CLASE AXP", "REALIZÓ 1RO 1500", 
-        "CITA MEDICA CENOP", "RETRASADO"
+    const NOVEDADES_LISTA = [
+        "FORMACIÓN", "LABORANDO", "RECIBE/OS", "ENTREGA/OS", "RECIBE/SS", "ENTREGA/SS", 
+        "RECIBE/S.SEMANA", "ENTREGA/S.SEMANA", "S.SEMANA", "REALIZÓ 1RO 1500", "CLASE AXP", 
+        "COMISIÓN SERVICIO", "COMISIÓN ESTUDIO", "COMISIÓN AL EXTERIOR", "CURSO DE ASCENSO", 
+        "FRANQUICIA", "PERMISOS ESPECIALES", "PERMISO DILIGENCIA PERSONAL", "CITA MEDICA CENOP", 
+        "PERMISO CITA MÉDICA", "EXCUSA PARCIAL", "EXCUSA TOTAL", "LEY MARÍA", "LEY JOSÉ", 
+        "VACACIONES", "HOSPITALIZADO", "PERMISO SEMANA SANTA", "PERMISO DICIEMBRE",
+        "APOYO AXP PERMANENTE", "APOYO SEGURIDAD", "SEPARACIÓN TEMPORAL", "CONCURSO PATRULLEROS", 
+        "LICENCIA DE MATERNIDAD O PATERNIDAD", "LICENCIA NO REMUNERADA", "LICENCIA POR LUTO", 
+        "LICENCIA REMUNERADA", "PENDIENTE ACTUALIZAR TRASLADO SIATH", "PENDIENTE POR RETIRAR", 
+        "CAPTURADO", "RECIEN TRASLADADO (NO PRESENTADO AL CENOP)", 
+        "RECIEN TRASLADADO (PENDIENTE POR PRESENTAR A LA UNIDAD)", "PENDIENTE POR TRAMITE DE REINTEGRO", 
+        "SUSPENSIÓN", "RETRASADO"
     ];
 
-    const NOVEDADES_LISTA = [...new Set(BASE_NOVEDADES_MAESTRA.map(n => n.toUpperCase().trim()))];
+    // Escala de peso para el orden jerárquico institucional
+    const PESO_JERARQUIA = {
+        "CM": 1,
+        "SC": 2,
+        "IJ": 3,
+        "IT": 4,
+        "SI": 5,
+        "PT": 6
+    };
 
-    const GRADOS_VALIDOS = ["MY", "CT", "TE", "ST", "CM", "SC", "IJ", "IT", "SI", "PT", "PP"];
+    function obtenerPesoJerarquico(lineaTexto) {
+        const textoLimpio = lineaTexto.trim().toUpperCase();
+        // Evaluar con qué siglas de grado inicia la cadena extraída
+        if (textoLimpio.startsWith("CM")) return PESO_JERARQUIA["CM"];
+        if (textoLimpio.startsWith("SC")) return PESO_JERARQUIA["SC"];
+        if (textoLimpio.startsWith("IJ")) return PESO_JERARQUIA["IJ"];
+        if (textoLimpio.startsWith("IT")) return PESO_JERARQUIA["IT"];
+        if (textoLimpio.startsWith("SI")) return PESO_JERARQUIA["SI"];
+        if (textoLimpio.startsWith("PT")) return PESO_JERARQUIA["PT"];
+        return 99; // Grados no mapeados o auxiliares van al final
+    }
 
-    function procesarYConsolidar() {
-        let totalEfe = [0,0,0,0];
-        let totalDis = [0,0,0,0];
-        let totalNov = [0,0,0,0];
-
-        let estructuraConteos = {};
-        let estructuraNombresRaw = {};
-
-        NOVEDADES_LISTA.forEach(nov => {
-            estructuraConteos[nov] = [0,0,0,0];
-            estructuraNombresRaw[nov] = [];
+    function ordenarPorJerarquia(listaNombres) {
+        return listaNombres.sort((a, b) => {
+            let pesoA = obtenerPesoJerarquico(a);
+            let pesoB = obtenerPesoJerarquico(b);
+            if (pesoA !== pesoB) {
+                return pesoA - pesoB;
+            }
+            return a.localeCompare(b); // Desempate alfabético si ostentan el mismo grado
         });
+    }
 
-        const fuentes = [
-            { id: 'txt-granaderos', nombre: 'GRANADEROS' },
-            { id: 'txt-cor', nombre: 'COR' },
-            { id: 'txt-tiro', nombre: 'TIRO' }
-        ];
+    function extraerVectores(texto) {
+        let efe = [0,0,0,0], dis = [0,0,0,0], nov = [0,0,0,0];
+        if (!texto) return { efe, dis, nov };
 
-        let bloquesProcesados = 0;
+        const regexEfe = /FUERZA EFE:\s*(\d+)-(\d+)-(\d+)-(\d+)/i;
+        const regexDis = /FUERZA DIS:\s*(\d+)-(\d+)-(\d+)-(\d+)/i;
+        const regexNov = /NOVEDADES:\s*(\d+)-(\d+)-(\d+)-(\d+)/i;
 
-        fuentes.forEach(fuente => {
-            const textoRaw = document.getElementById(fuente.id).value;
-            if (!textoRaw.trim()) return;
-            bloquesProcesados++;
+        let mEfe = texto.match(regexEfe);
+        let mDis = texto.match(regexDis);
+        let mNov = texto.match(regexNov);
 
-            const lineas = textoRaw.split('\n');
-            let novedadActual = "";
+        if(mEfe) efe = [parseInt(mEfe[1]), parseInt(mEfe[2]), parseInt(mEfe[3]), parseInt(mEfe[4])];
+        if(mDis) dis = [parseInt(mDis[1]), parseInt(mDis[2]), parseInt(mDis[3]), parseInt(mDis[4])];
+        if(mNov) nov = [parseInt(mNov[1]), parseInt(mNov[2]), parseInt(mNov[3]), parseInt(mNov[4])];
 
-            for (let i = 0; i < lineas.length; i++) {
-                let lOriginal = lineas[i].trim();
-                if (!lOriginal) continue;
+        return { efe, dis, nov };
+    }
 
-                let lLimpia = lOriginal.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                lLimpia = lLimpia.replace(/[\*\s·•\-\.:_]+/g, ' ').trim().toUpperCase();
+    function extraerConteoNovedad(texto, novedad) {
+        let v = [0,0,0,0];
+        if (!texto) return v;
+        
+        let novEscapada = novedad.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        let regex = new RegExp(`^${novEscapada}:\\s*(\\d+)-(\\d+)-(\\d+)-(\\d+)`, "im");
+        
+        let match = texto.match(regex);
+        if (match) {
+            v = [parseInt(match[1]), parseInt(match[2]), parseInt(match[3]), parseInt(match[4])];
+        }
+        return v;
+    }
 
-                if (!lLimpia) continue;
+    function extraerListasDeNombres(textoCompleto, listasAcumuladas) {
+        if (!textoCompleto) return;
+        
+        const lineas = textoCompleto.split('\n');
+        let novedadActual = null;
 
-                if (lLimpia.startsWith("FUERZA EFE")) {
-                    if (i < lineas.length * 0.4) {
-                        const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
-                        if (vectorMatch) {
-                            totalEfe[0] += parseInt(vectorMatch[1]); 
-                            totalEfe[1] += parseInt(vectorMatch[2]); 
-                            totalEfe[2] += parseInt(vectorMatch[3]); 
-                            totalEfe[3] += parseInt(vectorMatch[4]);
-                        }
-                    }
-                    continue;
-                }
+        for (let i = 0; i < lineas.length; i++) {
+            let linea = lineas[i].trim().toUpperCase();
+            if (linea === "" || linea.startsWith("FUERZA") || linea.startsWith("NOVEDADES:") || linea.startsWith("...")) continue;
 
-                if (lLimpia.startsWith("FUERZA DIS") || lLimpia.startsWith("NOVEDADES")) {
-                    // Omitimos estas líneas del encabezado para calcularlas dinámicamente y con precisión abajo
-                    continue;
-                }
-
-                if (lLimpia.includes("RESUMEN DE DISPONIBILIDAD") || lLimpia.includes("RESUMEN DISPONIBILIDAD")) {
-                    novedadActual = "";
-                    continue;
-                }
-
-                let detectoCambio = false;
-                
-                for (let n = 0; n < NOVEDADES_LISTA.length; n++) {
-                    let tokenNov = NOVEDADES_LISTA[n].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                    
-                    if (tokenNov === "FORMACION" && lLimpia.includes("FORMACION")) { novedadActual = "FORMACIÓN"; detectoCambio = true; break; }
-                    if (tokenNov === "OFICIAL DE SERVICIO" && (lLimpia.includes("OFICIAL DE SERVICIO") || lLimpia.includes("OFICIAL SERVICIO"))) { novedadActual = "OFICIAL DE SERVICIO"; detectoCambio = true; break; }
-                    if (tokenNov === "S.SEMANA" && (lLimpia.includes("S SEMANA") || lLimpia.includes("SSEMANA") || lLimpia.includes("S.SEMANA"))) { novedadActual = "S.SEMANA"; detectoCambio = true; break; }
-                    if (tokenNov === "PERMISOS ESPECIALES" && (lLimpia.includes("PERMISOS ESPECIALES") || lLimpia.includes("PERMISOS ESP"))) { novedadActual = "PERMISOS ESPECIALES"; detectoCambio = true; break; }
-                    if (tokenNov === "INCAPACIDAD PARCIAL" && (lLimpia.includes("INCAPACIDAD PARCIAL") || lLimpia.includes("INCAPACIDAD"))) { novedadActual = "INCAPACIDAD PARCIAL"; detectoCambio = true; break; }
-                    if (tokenNov === "COMISIÓN SERVICIO" && (lLimpia.includes("COMISION DEL SERVICIO") || lLimpia.includes("COMISION SERVICIO") || lLimpia.includes("COMISION SER") || lLimpia.includes("COMISION DE SERVICIO"))) { novedadActual = "COMISIÓN SERVICIO"; detectoCambio = true; break; }
-                    if (tokenNov === "COMISIÓN ESTUDIO" && lLimpia.includes("ESTUDIO") && !lLimpia.includes("EXTERIOR")) { novedadActual = "COMISIÓN ESTUDIO"; detectoCambio = true; break; }
-                    
-                    if (lLimpia.includes(tokenNov)) {
-                        novedadActual = NOVEDADES_LISTA[n];
-                        detectoCambio = true;
+            let cabeceraEncontrada = false;
+            
+            if (linea.includes("FORMACION")) {
+                novedadActual = "FORMACIÓN";
+                cabeceraEncontrada = true;
+            } else if (linea.includes("LABORANDO")) {
+                novedadActual = "LABORANDO";
+                cabeceraEncontrada = true;
+            } else {
+                for (let nov of NOVEDADES_LISTA) {
+                    if (linea === `*${nov}*` || linea === nov) {
+                        novedadActual = nov;
+                        cabeceraEncontrada = true;
                         break;
                     }
                 }
+            }
 
-                if (detectoCambio) continue;
+            if (cabeceraEncontrada) continue;
 
-                if (novedadActual) {
-                    const vectorMatch = lOriginal.match(/(\d+)-(\d+)-(\d+)-(\d+)/);
-                    if (vectorMatch) {
-                        if (i < lineas.length * 0.85) { 
-                            estructuraConteos[novedadActual][0] += parseInt(vectorMatch[1]);
-                            estructuraConteos[novedadActual][1] += parseInt(vectorMatch[2]);
-                            estructuraConteos[novedadActual][2] += parseInt(vectorMatch[3]);
-                            estructuraConteos[novedadActual][3] += parseInt(vectorMatch[4]);
-                        }
-                        continue;
+            if (novedadActual && (lineas[i].startsWith(" ") || lineas[i].startsWith("\t") || linea.startsWith("·") || linea.startsWith("-"))) {
+                let nombreLimpio = lineas[i].replace(/[·\-\*]/g, "").trim();
+                if (nombreLimpio !== "" && !nombreLimpio.startsWith("GRADO") && !nombreLimpio.startsWith("FORMAN") && !nombreLimpio.match(/^\d+-\d+/)) {
+                    if (!listasAcumuladas[novedadActual]) {
+                        listasAcumuladas[novedadActual] = [];
                     }
-
-                    if (lLimpia === "NINGUNO" || lLimpia.includes("GRADO APELLIDO") || lLimpia.includes("GRADO UNIDAD") || lLimpia.startsWith("FORMAN") || lLimpia.includes("PERSONAL EN BASE")) {
-                        continue;
-                    }
-
-                    const tokens = lLimpia.split(/\s+/);
-                    if (tokens.length > 0) {
-                        let posibleGrado = tokens[0].replace(/\./g, '');
-                        if (GRADOS_VALIDOS.includes(posibleGrado)) {
-                            let nombrePresentacion = lOriginal.replace(/^[\s\*·•\-\.:_]+/g, '').replace(/\*/g, '').trim();
-                            
-                            estructuraNombresRaw[novedadActual].push({
-                                grado: posibleGrado,
-                                primerApellido: tokens[1] ? tokens[1] : "",
-                                textoLimpio: lLimpia,
-                                original: nombrePresentacion,
-                                fuenteNombre: fuente.nombre,
-                                largo: lLimpia.length
-                            });
-                        }
+                    // Validar duplicados exactos antes de insertar
+                    if (!listasAcumuladas[novedadActual].includes(nombreLimpio)) {
+                        listasAcumuladas[novedadActual].push(nombreLimpio);
                     }
                 }
             }
-        });
+        }
+    }
 
-        if (bloquesProcesados === 0) {
-            alert("Por favor, pegue al menos un reporte de WhatsApp.");
+    function extraerActividadesLaborando(texto) {
+        if (!texto) return "";
+        const match = texto.match(/\*ACTIVIDADES\*\s*\n_([^_\n]+)_/i);
+        if (match && match[1]) {
+            return match[1].trim().toUpperCase();
+        }
+        return "";
+    }
+
+    function procesarConsolidado() {
+        const tGran = document.getElementById('txt-granaderos').value;
+        const tCor = document.getElementById('txt-cor').value;
+        const tTiro = document.getElementById('txt-tiro').value;
+
+        if (!tGran && !tCor && !tTiro) {
+            alert("Por favor ingrese al menos uno de los reportes para procesar.");
             return;
         }
 
-        // REGLA DOCTRINARIA CORREGIDA:
-        // Fuerza DIS es igual a lo acumulado estrictamente en FORMACIÓN.
-        // Novedades (totalNov) acumula TODO lo demás que no sea FORMACIÓN (incluye LABORANDO).
-        for (let i = 0; i < 4; i++) {
-            totalDis[i] = estructuraConteos["FORMACIÓN"][i];
+        let pGran = extraerVectores(tGran);
+        let pCor = extraerVectores(tCor);
+        let pTiro = extraerVectores(tTiro);
+
+        let cEfe = [0,0,0,0], cDis = [0,0,0,0], cNov = [0,0,0,0];
+        
+        for(let i=0; i<4; i++) {
+            cEfe[i] = pGran.efe[i] + pCor.efe[i] + pTiro.efe[i];
         }
+
+        let estructuraConteos = {};
+        let listasNombresObjetos = {};
+
+        NOVEDADES_LISTA.forEach(nov => {
+            estructuraConteos[nov] = [0,0,0,0];
+            listasNombresObjetos[nov] = [];
+            
+            let vG = extraerConteoNovedad(tGran, nov);
+            let vC = extraerConteoNovedad(tCor, nov);
+            let vT = extraerConteoNovedad(tTiro, nov);
+            
+            for(let i=0; i<4; i++) {
+                estructuraConteos[nov][i] = vG[i] + vC[i] + vT[i];
+            }
+        });
+
+        extraerListasDeNombres(tGran, listasNombresObjetos);
+        extraerListasDeNombres(tCor, listasNombresObjetos);
+        extraerListasDeNombres(tTiro, listasNombresObjetos);
+
+        let actGran = extraerActividadesLaborando(tGran);
+        let actCor = extraerActividadesLaborando(tCor);
+        let actTiro = extraerActividadesLaborando(tTiro);
+        let listaActividades = [actGran, actCor, actTiro].filter(a => a !== "").join(" / ");
+        if (listaActividades === "") listaActividades = "SIN NOVEDADES EN ACTIVIDADES.";
 
         NOVEDADES_LISTA.forEach(nov => {
             if (nov !== "FORMACIÓN") {
-                for (let i = 0; i < 4; i++) {
-                    totalNov[i] += estructuraConteos[nov][i];
+                for(let i=0; i<4; i++) {
+                    cNov[i] += estructuraConteos[nov][i];
                 }
             }
         });
 
-        let estructuraNombresFinal = {};
-        NOVEDADES_LISTA.forEach(nov => {
-            estructuraNombresFinal[nov] = [];
-            let candidatos = estructuraNombresRaw[nov];
+        for(let i=0; i<4; i++) {
+            cDis[i] = cEfe[i] - cNov[i];
+        }
 
-            candidatos = candidatos.filter(c => !c.textoLimpio.includes("ACTIVIDADES") && !c.textoLimpio.includes("ACTIVIDAD"));
-            candidatos.sort((a, b) => b.largo - a.largo);
-
-            let huellasRegistradas = new Set();
-
-            candidatos.forEach(c => {
-                let huella = `${c.grado}-${c.primerApellido}`;
-                
-                let esLineaDeRol = c.textoLimpio.includes("PRINCIPAL") || c.textoLimpio.includes("AUXILIAR") || 
-                                   c.textoLimpio.includes("CONDUCTOR") || c.textoLimpio.includes("CONDUC") || 
-                                   c.textoLimpio.includes("ENFERMERO") || c.textoLimpio.includes("RELEVO");
-
-                if (!huellasRegistradas.has(huella)) {
-                    if (!esLineaDeRol) {
-                        estructuraNombresFinal[nov].push(`  ${c.original} - ${c.fuenteNombre}`);
-                    }
-                    huellasRegistradas.add(huella);
-                }
-            });
-        });
-
-        const fmt = (v) => `${v[0]}-${v[1]}-${v[2]}-${v[3]}= ${v.reduce((x,y)=>x+y,0)}`;
-
-        let f = new Date();
-        let fechaStr = f.getDate() + "/" + (f.getMonth() + 1) + "/" + f.getFullYear();
-
-        let output = `*CONSOLIDADO GENERAL GRUPO DE INSTRUCTORES CENOP*\n`;
-        output += `Fecha de Consolidación: ${fechaStr}\n\n`;
-        output += `Fuerza Efe: ${fmt(totalEfe)}\n`;
-        output += `Fuerza Dis: ${fmt(totalDis)}\n`;
-        output += `Novedades:  ${fmt(totalNov)}\n`;
-        output += `.............................................\n\n`;
-
-        NOVEDADES_LISTA.forEach(nov => {
-            let totalEnNov = estructuraConteos[nov].reduce((x,y)=>x+y,0);
-            
-            if (totalEnNov > 0) {
-                output += `*${nov}*\n`;
-                output += `${fmt(estructuraConteos[nov])}\n`;
-                
-                if (estructuraNombresFinal[nov].length > 0) {
-                    let listadoImpresion = [...new Set(estructuraNombresFinal[nov])].sort();
-                    listadoImpresion.forEach(nom => {
-                        output += `${nom}\n`;
-                    });
-                } else {
-                    output += `  Ninguno\n`;
-                }
-                output += `\n`;
-            }
-        });
-
-        output += `.............................................\n`;
-        output += `*RESUMEN DE DISPONIBILIDAD TOTAL*\n`;
-        output += `Fuerza Efe: ${fmt(totalEfe)}\n`;
-        output += `Fuerza Dis: ${fmt(totalDis)}\n`;
-        output += `Novedades:  ${fmt(totalNov)}\n`;
-        output += `..................................\n`;
+        const fmt = (a) => `${a[0]}-${a[1]}-${a[2]}-${a[3]}= ${a.reduce((x,y)=>x+y,0)}`;
         
+        // Función interna auxiliar que aplica el orden jerárquico antes de imprimir la lista
+        const impListaJerarquica = (arr) => {
+            let ordenados = ordenarPorJerarquia(arr);
+            return ordenados.map(n => `  ${n}`).join('\n');
+        };
+
+        let output = `*CONSOLIDADO GENERAL INSTRUCTORES CENOP*\n\n`;
+        output += `FUERZA EFE: ${fmt(cEfe)}\n`;
+        output += `FUERZA DIS: ${fmt(cDis)}\n`;
+        output += `NOVEDADES: ${fmt(cNov)}\n`;
+        output += `.....................\n\n`;
+
+        // Renderizado Jerárquico: FORMAN
+        if (listasNombresObjetos["FORMACIÓN"].length > 0) {
+            output += `·  *FORMACION*\n`;
+            output += `FORMAN\n${fmt(estructuraConteos["FORMACIÓN"])}\n`;
+            output += `  *GRADO* *APELLIDO*\n`;
+            output += `${impListaJerarquica(listasNombresObjetos["FORMACIÓN"])}\n\n`;
+        }
+
+        // Renderizado Jerárquico: LABORANDO
+        if (listasNombresObjetos["LABORANDO"].length > 0) {
+            output += `*LABORANDO*\n${fmt(estructuraConteos["LABORANDO"])}\n`;
+            output += `*ACTIVIDADES*\n_${listaActividades}_\n`;
+            output += `  *GRADO* *APELLIDO*\n`;
+            output += `${impListaJerarquica(listasNombresObjetos["LABORANDO"])}\n\n`;
+        }
+
+        output += `......................................\n`;
+        output += `*NOVEDADES ESPECÍFICAS CON LISTADOS*\n\n`;
+
+        // Renderizado Jerárquico de cada Novedad Específica
         NOVEDADES_LISTA.forEach(nov => {
-            let totalEnNov = estructuraConteos[nov].reduce((x,y)=>x+y,0);
-            
-            if (totalEnNov > 0) {
-                let tituloMin = nov.charAt(0) + nov.slice(1).toLowerCase();
-                if (nov === "PERMISOS ESPECIALES") tituloMin = "Permisos Esp";
-                if (nov === "INCAPACIDAD PARCIAL") tituloMin = "Incapacidad";
-                if (nov === "COMISIÓN SERVICIO") tituloMin = "Comisión Ser";
-                if (nov === "COMISIÓN ESTUDIO") tituloMin = "Comisión Estudio";
-                if (nov === "OFICIAL DE SERVICIO") tituloMin = "Oficial Servicio";
-                
-                let espacio = tituloMin.length < 15 ? " ".repeat(16 - tituloMin.length) : " ";
-                output += `${tituloMin}:${espacio}${fmt(estructuraConteos[nov])}\n`;
+            if (nov !== "FORMACIÓN" && nov !== "LABORANDO") {
+                if (listasNombresObjetos[nov] && listasNombresObjetos[nov].length > 0) {
+                    output += `*${nov}*\n${fmt(estructuraConteos[nov])}\n`;
+                    output += `  *GRADO* *APELLIDO*\n`;
+                    output += `${impListaJerarquica(listasNombresObjetos[nov])}\n\n`;
+                }
             }
         });
+
+        output += `..................................\n`;
+        output += `Fuerza Efe: ${fmt(cEfe)}\n`;
+        output += `Fuerza Dis: ${fmt(cDis)}\n`;
+        output += `Novedades ${fmt(cNov)}\n`;
+        output += `..................................\n\n`;
+
+        NOVEDADES_LISTA.forEach(nov => {
+            let totalEnNov = estructuraConteos[nov].reduce((x,y)=>x+y,0);
+            if (totalEnNov > 0) {
+                output += `${nov}: ${fmt(estructuraConteos[nov])}\n`;
+            }
+        });
+
+        output += `\n*“DIOS Y PATRIA”*`;
 
         document.getElementById('texto-consolidado-final').innerText = output;
         document.getElementById('seccion-resultado').style.display = 'block';
@@ -403,9 +410,9 @@
     function copiarConsolidado() {
         const elTexto = document.getElementById('texto-consolidado-final').innerText;
         navigator.clipboard.writeText(elTexto).then(() => {
-            alert("¡Consolidado general copiado con éxito!");
+            alert("¡Consolidado jerárquico copiado con éxito!");
         }).catch(() => {
-            alert("Error al copiar automáticamente.");
+            alert("Error al copiar el texto automáticamente.");
         });
     }
 </script>
