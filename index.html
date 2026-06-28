@@ -111,6 +111,21 @@
             margin-bottom: 15px;
             line-height: 1.4;
         }
+        .filtro-contenedor {
+             margin-bottom: 15px;
+             padding: 10px;
+             background-color: var(--bg-principal);
+             border-radius: 5px;
+        }
+        .filtro-select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            background-color: var(--bg-tarjeta);
+            color: var(--texto-claro);
+            border: 1px solid var(--borde);
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -145,6 +160,15 @@
     <div class="seccion" id="seccion-resultado" style="display: none;">
         <h3>Consolidado General de Instructores</h3>
         <button onclick="copiarConsolidado()" style="background-color: var(--exito); color: #0b1329; margin-bottom: 15px;">Copiar Consolidado para WhatsApp</button>
+        
+        <!-- Filtro Dinámico -->
+        <div class="filtro-contenedor">
+             <label for="filtro-novedad">Filtrar vista por novedad:</label>
+             <select id="filtro-novedad" class="filtro-select" onchange="aplicarFiltroVista()">
+                 <option value="TODAS">-- MOSTRAR TODO EL CONSOLIDADO --</option>
+             </select>
+        </div>
+
         <div class="resultado-reporte" id="texto-consolidado-final"></div>
     </div>
 </div>
@@ -154,7 +178,8 @@
         "FORMACIÓN", "LABORANDO", "RECIBE/OS", "ENTREGA/OS", "RECIBE/SS", "ENTREGA/SS", 
         "RECIBE/S.SEMANA", "ENTREGA/S.SEMANA", "S.SEMANA", "REALIZÓ 1RO 1500", "CLASE AXP", 
         "COMISIÓN SERVICIO", "COMISIÓN ESTUDIO", "COMISIÓN AL EXTERIOR", "CURSO DE ASCENSO", 
-        "FRANQUICIA", "PERMISOS ESPECIALES", "PERMISO DILIGENCIA PERSONAL", "CITA MEDICA CENOP", 
+        "FRANQUICIA", "DESCANSO DEL SERVICIO", "PERMISO DE ESTUDIO", "PERMISO COMPENSATORIO",
+        "PERMISOS ESPECIALES", "PERMISO DILIGENCIA PERSONAL", "CITA MEDICA CENOP", 
         "PERMISO CITA MÉDICA", "EXCUSA PARCIAL", "EXCUSA TOTAL", "LEY MARÍA", "LEY JOSÉ", 
         "VACACIONES", "HOSPITALIZADO", "PERMISO SEMANA SANTA", "PERMISO DICIEMBRE",
         "APOYO AXP PERMANENTE", "APOYO SEGURIDAD", "SEPARACIÓN TEMPORAL", "CONCURSO PATRULLEROS", 
@@ -165,7 +190,6 @@
         "SUSPENSIÓN", "RETRASADO"
     ];
 
-    // Escala de peso para el orden jerárquico institucional
     const PESO_JERARQUIA = {
         "CM": 1,
         "SC": 2,
@@ -175,16 +199,17 @@
         "PT": 6
     };
 
+    let textoConsolidadoGlobal = "";
+
     function obtenerPesoJerarquico(lineaTexto) {
         const textoLimpio = lineaTexto.trim().toUpperCase();
-        // Evaluar con qué siglas de grado inicia la cadena extraída
         if (textoLimpio.startsWith("CM")) return PESO_JERARQUIA["CM"];
         if (textoLimpio.startsWith("SC")) return PESO_JERARQUIA["SC"];
         if (textoLimpio.startsWith("IJ")) return PESO_JERARQUIA["IJ"];
         if (textoLimpio.startsWith("IT")) return PESO_JERARQUIA["IT"];
         if (textoLimpio.startsWith("SI")) return PESO_JERARQUIA["SI"];
         if (textoLimpio.startsWith("PT")) return PESO_JERARQUIA["PT"];
-        return 99; // Grados no mapeados o auxiliares van al final
+        return 99;
     }
 
     function ordenarPorJerarquia(listaNombres) {
@@ -194,7 +219,7 @@
             if (pesoA !== pesoB) {
                 return pesoA - pesoB;
             }
-            return a.localeCompare(b); // Desempate alfabético si ostentan el mismo grado
+            return a.localeCompare(b);
         });
     }
 
@@ -267,7 +292,6 @@
                     if (!listasAcumuladas[novedadActual]) {
                         listasAcumuladas[novedadActual] = [];
                     }
-                    // Validar duplicados exactos antes de insertar
                     if (!listasAcumuladas[novedadActual].includes(nombreLimpio)) {
                         listasAcumuladas[novedadActual].push(nombreLimpio);
                     }
@@ -345,7 +369,6 @@
 
         const fmt = (a) => `${a[0]}-${a[1]}-${a[2]}-${a[3]}= ${a.reduce((x,y)=>x+y,0)}`;
         
-        // Función interna auxiliar que aplica el orden jerárquico antes de imprimir la lista
         const impListaJerarquica = (arr) => {
             let ordenados = ordenarPorJerarquia(arr);
             return ordenados.map(n => `  ${n}`).join('\n');
@@ -357,7 +380,6 @@
         output += `NOVEDADES: ${fmt(cNov)}\n`;
         output += `.....................\n\n`;
 
-        // Renderizado Jerárquico: FORMAN
         if (listasNombresObjetos["FORMACIÓN"].length > 0) {
             output += `·  *FORMACION*\n`;
             output += `FORMAN\n${fmt(estructuraConteos["FORMACIÓN"])}\n`;
@@ -365,7 +387,6 @@
             output += `${impListaJerarquica(listasNombresObjetos["FORMACIÓN"])}\n\n`;
         }
 
-        // Renderizado Jerárquico: LABORANDO
         if (listasNombresObjetos["LABORANDO"].length > 0) {
             output += `*LABORANDO*\n${fmt(estructuraConteos["LABORANDO"])}\n`;
             output += `*ACTIVIDADES*\n_${listaActividades}_\n`;
@@ -376,7 +397,6 @@
         output += `......................................\n`;
         output += `*NOVEDADES ESPECÍFICAS CON LISTADOS*\n\n`;
 
-        // Renderizado Jerárquico de cada Novedad Específica
         NOVEDADES_LISTA.forEach(nov => {
             if (nov !== "FORMACIÓN" && nov !== "LABORANDO") {
                 if (listasNombresObjetos[nov] && listasNombresObjetos[nov].length > 0) {
@@ -402,15 +422,69 @@
 
         output += `\n*“DIOS Y PATRIA”*`;
 
+        textoConsolidadoGlobal = output;
         document.getElementById('texto-consolidado-final').innerText = output;
         document.getElementById('seccion-resultado').style.display = 'block';
+        
+        llenarFiltroDesplegable();
+        
         document.getElementById('seccion-resultado').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function llenarFiltroDesplegable() {
+         const select = document.getElementById('filtro-novedad');
+         select.innerHTML = '<option value="TODAS">-- MOSTRAR TODO EL CONSOLIDADO --</option>';
+         
+         if (textoConsolidadoGlobal.includes("FORMACION")) {
+             select.innerHTML += `<option value="FORMACION">FORMACION</option>`;
+         }
+         NOVEDADES_LISTA.forEach(nov => {
+             if (textoConsolidadoGlobal.includes(`*${nov}*`)) {
+                 select.innerHTML += `<option value="${nov}">${nov}</option>`;
+             }
+         });
+    }
+
+    function aplicarFiltroVista() {
+        const filtro = document.getElementById('filtro-novedad').value;
+        const divResultado = document.getElementById('texto-consolidado-final');
+        
+        if (filtro === "TODAS") {
+             divResultado.innerText = textoConsolidadoGlobal;
+             return;
+        }
+
+        let textoMostrar = `Mostrando resultados filtrados para: ${filtro}\n\n`;
+        const lineas = textoConsolidadoGlobal.split('\n');
+        let capturando = false;
+        
+        for (let i = 0; i < lineas.length; i++) {
+             let linea = lineas[i];
+             
+             if (linea.includes(`*${filtro}*`) || (linea.includes(`*FORMACION*`) && filtro === "FORMACION")) {
+                 capturando = true;
+             }
+             else if (capturando && (linea.includes("..................................") || (linea.startsWith("*") && !linea.includes(filtro)))) {
+                 capturando = false;
+                 break;
+             }
+             
+             if (capturando) {
+                 textoMostrar += linea + '\n';
+             }
+        }
+        
+        if (textoMostrar.trim() === `Mostrando resultados filtrados para: ${filtro}`) {
+            textoMostrar += "No se encontraron registros bajo esta categoría en el reporte actual.";
+        }
+        
+        divResultado.innerText = textoMostrar;
     }
 
     function copiarConsolidado() {
         const elTexto = document.getElementById('texto-consolidado-final').innerText;
         navigator.clipboard.writeText(elTexto).then(() => {
-            alert("¡Consolidado jerárquico copiado con éxito!");
+            alert("¡Consolidado copiado con éxito!");
         }).catch(() => {
             alert("Error al copiar el texto automáticamente.");
         });
