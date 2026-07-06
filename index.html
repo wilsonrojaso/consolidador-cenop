@@ -4,52 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consolidador General de Fuerzas - CENOP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-principal: #0b1329;
-            --bg-tarjeta: #1c2541;
-            --verde-tactico: #00b4d8;
-            --texto-claro: #f8fafc;
-            --borde: #3a506b;
-            --exito: #06d6a0;
-            --gris-txt: #94a3b8;
+            --bg-principal: #060814;
+            --bg-tarjeta: #0d1230;
+            --verde-tactico: #00fff2;
+            --neon-magenta: #ff00e6;
+            --neon-violeta: #9d4dff;
+            --texto-claro: #eaf9ff;
+            --borde: #1e2a5e;
+            --exito: #39ff88;
+            --gris-txt: #8aa0d4;
         }
+        * { box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Share Tech Mono', 'Segoe UI', monospace;
             background-color: var(--bg-principal);
+            background-image:
+                linear-gradient(rgba(0,255,242,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,0,230,0.05) 1px, transparent 1px),
+                radial-gradient(ellipse at top, rgba(157,77,255,0.15), transparent 60%);
+            background-size: 28px 28px, 28px 28px, 100% 100%;
             color: var(--texto-claro);
             margin: 0;
             padding: 15px;
+            min-height: 100vh;
         }
         .contenedor {
             max-width: 800px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
         .titulo-app {
             text-align: center;
-            color: var(--texto-claro);
+            color: var(--verde-tactico);
             border-bottom: 2px solid var(--verde-tactico);
             padding-bottom: 10px;
             margin-bottom: 25px;
             text-transform: uppercase;
             font-size: 18px;
-            letter-spacing: 1px;
+            letter-spacing: 3px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-shadow: 0 0 6px var(--verde-tactico), 0 0 18px rgba(0,255,242,0.6);
         }
         .seccion {
             background-color: var(--bg-tarjeta);
             border: 1px solid var(--borde);
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 0 20px rgba(0,255,242,0.08), 0 4px 15px rgba(0,0,0,0.4), inset 0 0 30px rgba(157,77,255,0.05);
         }
         h3 {
-            color: var(--verde-tactico);
+            color: var(--neon-magenta);
             margin-top: 0;
             text-transform: uppercase;
-            border-left: 4px solid var(--verde-tactico);
+            border-left: 4px solid var(--neon-magenta);
             padding-left: 10px;
             font-size: 15px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(255,0,230,0.55);
         }
         label {
             display: block;
@@ -57,26 +76,28 @@
             font-size: 13px;
             font-weight: bold;
             color: var(--gris-txt);
+            letter-spacing: 0.5px;
         }
         textarea {
             width: 100%;
             padding: 12px;
-            background-color: #0b1329;
+            background-color: #05060f;
             border: 1px solid var(--borde);
-            color: var(--texto-claro);
+            color: var(--verde-tactico);
             border-radius: 6px;
             box-sizing: border-box;
             font-size: 14px;
             resize: vertical;
-            font-family: monospace;
+            font-family: 'Share Tech Mono', monospace;
         }
         textarea:focus {
             border-color: var(--verde-tactico);
             outline: none;
+            box-shadow: 0 0 10px rgba(0,255,242,0.45);
         }
         button {
-            background-color: var(--verde-tactico);
-            color: #0b1329;
+            background: linear-gradient(90deg, var(--verde-tactico), var(--neon-violeta));
+            color: #050414;
             border: none;
             padding: 14px;
             font-weight: bold;
@@ -85,15 +106,19 @@
             cursor: pointer;
             width: 100%;
             font-size: 14px;
+            letter-spacing: 1px;
             transition: 0.2s;
             margin-top: 10px;
+            font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 12px rgba(0,255,242,0.35);
         }
         button:hover {
-            opacity: 0.9;
+            opacity: 0.92;
             transform: translateY(-1px);
+            box-shadow: 0 0 20px rgba(255,0,230,0.55);
         }
         .resultado-reporte {
-            background-color: #ffffff;
+            background-color: #f5faff;
             border: 2px solid var(--verde-tactico);
             border-left: 6px solid var(--exito);
             font-family: 'Courier New', Courier, monospace;
@@ -104,6 +129,7 @@
             margin-top: 15px;
             font-size: 15px;
             line-height: 1.4;
+            box-shadow: 0 0 18px rgba(0,255,242,0.25);
         }
         .instrucciones {
             font-size: 12px;
@@ -115,6 +141,7 @@
              margin-bottom: 15px;
              padding: 10px;
              background-color: var(--bg-principal);
+             border: 1px solid var(--borde);
              border-radius: 5px;
         }
         .filtro-select {
@@ -122,7 +149,7 @@
             padding: 10px;
             margin-top: 5px;
             background-color: var(--bg-tarjeta);
-            color: var(--texto-claro);
+            color: var(--verde-tactico);
             border: 1px solid var(--borde);
             border-radius: 5px;
         }
